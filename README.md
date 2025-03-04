@@ -59,7 +59,7 @@ On Github, you need two repositories, one to collect the answers and on hosting 
 1. In the "Repository" field, select the github repository for the webapp (i.e. the repository you generated from the template).
 1. In the "Main file path", select the file "elicipy/streamlit_app.py".
 1. Click on "Advanced settings".
-1. Select Python version 3.9 or 3.10.
+1. Select Python version 3.10.
 1. In the Secrets textbox write.
 
    github_token = "insert_here_your_token"
