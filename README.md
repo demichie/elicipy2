@@ -26,7 +26,7 @@ From the command line, go to the main folder of elicipy and type:
 
 > pip install .
 
-This will install elicipy and the two main executable:
+This will install elicipy and the two main executables:
 
 1. elicipy_form (for the collection of answers with a webform).
 1. elicipy (for the analysis of the answers).
