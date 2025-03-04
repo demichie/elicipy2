@@ -1,4 +1,4 @@
-from tools import printProgressBar
+from elicipy.tools import printProgressBar
 
 
 def clean_folder(folder_path):

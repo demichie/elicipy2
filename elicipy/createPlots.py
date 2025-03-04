@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib.ticker import PercentFormatter
 
-from tools import printProgressBar
+from elicipy.tools import printProgressBar
 
 plt.rcParams.update({"font.size": 8})
 

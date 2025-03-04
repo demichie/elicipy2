@@ -10,24 +10,24 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import MSO_AUTO_SIZE
 from pptx import Presentation
 
-from saveFromGithub import saveDataFromGithub
-from createSamples import createSamples
-from COOKEweights import COOKEweights
-from ERFweights import ERFweights
-from merge_csv import merge_csv
+from elicipy.saveFromGithub import saveDataFromGithub
+from elicipy.createSamples import createSamples
+from elicipy.COOKEweights import COOKEweights
+from elicipy.ERFweights import ERFweights
+from elicipy.merge_csv import merge_csv
 
 # from createPlots import create_fig_hist
-from createPlots import create_figure_violin
-from createPlots import create_figure_pie
-from createPlots import create_figure_trend
-from createPlots import create_figure_answers
-from createPlots import create_barplot
-from createPlots import create_figure_index
+from elicipy.createPlots import create_figure_violin
+from elicipy.createPlots import create_figure_pie
+from elicipy.createPlots import create_figure_trend
+from elicipy.createPlots import create_figure_answers
+from elicipy.createPlots import create_barplot
+from elicipy.createPlots import create_figure_index
 
-from tools import printProgressBar
+from elicipy.tools import printProgressBar
 
 # from krippendorff_alpha import calculate_alpha
-from computeIndex import calculate_index
+from elicipy.computeIndex import calculate_index
 
 max_len_table = 21
 max_len_tableB = 18
@@ -1095,7 +1095,7 @@ def create_samples(group, n_experts, n_SQ, n_TQ, n_pctl, SQ_array, TQ_array,
     return q_Cooke, q_erf, q_EW, samples, samples_erf, samples_EW
 
 
-def main(argv):
+def run_elicitation(argv):
 
     verbose = False
 
@@ -2925,4 +2925,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    run_elicitation(sys.argv[1:])
