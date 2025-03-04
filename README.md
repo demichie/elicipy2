@@ -53,7 +53,7 @@ On Github, you need two repositories, one to collect the answers and on hosting 
 1. At the bottom of the left panel, click on "Developer settings".
 1. On the left, click on "Personal access tokens".
 1. Click on "Tokens (classic)".
-1. Click on top on "Generate new token" and select (Generate new token (classic).
+1. Click on top on "Generate new token" and select (Generate new token (classic)).
 1. Give a name.
 1. Select scope "repo".
 1. At the end of the page click on "Generate token".
@@ -63,8 +63,9 @@ On Github, you need two repositories, one to collect the answers and on hosting 
 
 1. Login with github account.
 1. On the top-right, click on "Create app".
-1. Select "Yup, I have an app" to deploy the app from the github repository.
+1. Select "Deploy a Public app form GitHub" by clicking on "Deply now" to deploy the app from the github repository.
 1. In the "Repository" field, select the github repository for the webapp (i.e. the repository you generated from the template).
+1. In the "Main file path", select the file "elicipy/streamlit_app.py".
 1. Click on "Advanced settings".
 1. Select Python version 3.9 or 3.10.
 1. In the Secrets textbox write.
