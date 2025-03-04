@@ -20,7 +20,7 @@ When there are multiple elicitations folders inside ELICITATION, the elicitation
 
 To install Elicipy, first create a pip or anaconda environement with Python >=3.10.
 
-Then, activate the environment and download a [copy]([https://website-name.com](https://github.com/demichie/elicipy2/archive/refs/heads/main.zip)) of the repository.
+Then, activate the environment and download a [copy]([https://website-name.com](https://github.com/demichie/elicipy2/archive/refs/heads/main.zip) of the repository.
 
 From the command line, go to the main folder of elicipy and type: 
 
