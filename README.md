@@ -16,6 +16,21 @@ The files required to run an elicitation are:
 
 When there are multiple elicitations folders inside ELICITATION, the elicitation for the Webapp is specified in the file ElicitationCase.py
 
+## Installation 
+
+To install Elicipy, first create a pip or anaconda environement with Python >=3.10.
+
+Then, activate the environment and download a copy of the repository.
+
+From the command line, go to the main folder of elicipy and type: 
+
+> pip install .
+
+This will install elicipy and the two main executable:
+
+1. elicipy_form (for the collection of answers with a webform).
+1. elicipy (for the analysis of the answers).
+
 ___
 
 ## Webform
@@ -145,7 +160,7 @@ repository).
 1. Edit the file "ElicitationCase.py" with the elicitation folder name
 1. Start the webapp with:
 
-> streamlit run streamlit_app.py
+> elicipy_form
  
 On your screen you will see these lines (with different web addresses):
 
@@ -169,7 +184,7 @@ ___
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
 
-> python elicipy.py
+> elicipy
 
 ### Analysis with Webapp hosted locally and answers saved on Github
 1. On your computer, in the file ElicipyDict.py, set datarepo = 'github' and RepositoryData = the name of the Github repository with the answers
