@@ -191,7 +191,7 @@ ___
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
 
-> python elicipy.py
+> elicipy
 
 
 ### Analysis with Webapp hosted locally and answers saved locally
@@ -199,7 +199,7 @@ ___
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
 
-> python elicipy.py
+> elicipy
 
 
 The analysis results are saved in the folder output_dir (set in ElicipyDict.py)
