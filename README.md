@@ -194,7 +194,7 @@ Now create in the elicpy folder a file .env, and add the following line to the f
 
 > PASSWORD_HASH=$2b$12$e.TWWrtWDuEfYaU7oe8RR.yUX4fOdJeA4N8flaMNnzIzte3Xqlxay
 
-
+At this point, when you open the form webpage on a browser, you will be asked for the password first.
 
 ___
 
