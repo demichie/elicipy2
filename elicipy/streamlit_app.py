@@ -5,6 +5,7 @@ import sys
 
 import bcrypt
 from dotenv import load_dotenv
+from dotenv import dotenv_values
 
 from github import Github
 from github import Auth
@@ -370,12 +371,26 @@ def check_form(qst, idxs, s, ans, units, minVals, maxVals, idx_list,
 load_dotenv()
 PASSWORD_HASH = os.getenv("PASSWORD_HASH")  # Read the stored password hash
 
+if PASSWORD_HASH is None:
+
+    config = dotenv_values(".env")
+    PASSWORD_HASH = config['PASSWORD_HASH']
+    
 
 def check_password():
-    """Verify the entered password against the stored hash."""
+
+    hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+    # Verify the entered password against the stored hash.
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
-
+        
     if not st.session_state.authenticated:
         password = st.text_input("Enter password:", type="password")
         if st.button("Login"):
@@ -392,41 +407,10 @@ def main():
 
     st.set_page_config(page_title="Elicipy", page_icon="logo.png")
 
-    try:
-
-        from createWebformDict import password_protected
-
-    except ImportError:
-
-        password_protected = False
-
-    if password_protected:
-
-        if check_password():
-            show_form()
-
-    else:
-
-        show_form()
-
-
-def show_form():
-
-    hide_streamlit_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-    st.title("Elicitation form")
-
     current_path = os.getcwd()
 
     path = current_path + '/ELICITATIONS'
     os.chdir(path)
-    print('Path: ', path)
     sys.path.append(path)
 
     elicitation_list = next(os.walk(path))
@@ -455,10 +439,43 @@ def show_form():
                 print('Please create file ElicitationCase.py with wrk_dir')
 
     path = current_path + '/ELICITATIONS/' + wrk_dir
-    print('Path: ', path)
+
     sys.path.append(path)
 
     os.chdir(current_path)
+
+    try:
+
+        from createWebformDict import password_protected
+
+    except ImportError:
+
+        password_protected = False
+
+    if password_protected:
+
+        if check_password():
+
+            show_form(path,current_path)
+
+    else:
+
+        show_form(path,current_path)
+
+
+def show_form(path,current_path):
+
+    hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+    st.title("Elicitation form")
+
+
 
     from createWebformDict import quest_type
 
@@ -691,7 +708,7 @@ def show_form():
 
     for i in df.itertuples():
 
-        print([i[j] for j in index_list])
+        # print([i[j] for j in index_list])
 
         idx, label, shortQ, longQ, unit, scale, minVal, maxVal, realization, \
             question, idxMin, idxMax, sum50, parent, image =\
