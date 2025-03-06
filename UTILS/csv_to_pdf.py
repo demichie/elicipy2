@@ -3,6 +3,8 @@ import os
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import simpleSplit
+from reportlab.lib import utils
+from reportlab.lib.colors import magenta, pink, blue, green
 from pdfrw import PdfReader, PdfWriter, PdfDict, PdfName, PdfArray
 
 
@@ -17,6 +19,7 @@ def parse_csv(file_path):
         units_col = next((col for col in columns if "UNITS" in col), None)
         quest_type_col = next((col for col in columns if "QUEST_TYPE" in col),
                               None)
+        image_col = next((col for col in columns if "IMAGE" in col), None)
 
         if not all(
             [label_col, short_q_col, long_q_cols, units_col, quest_type_col]):
@@ -48,7 +51,8 @@ def parse_csv(file_path):
                 "short_q": row[short_q_col],
                 "long_q": row[long_q_col],
                 "units": row[units_col],
-                "quest_type": row[quest_type_col]
+                "quest_type": row[quest_type_col],
+                "image": row[image_col] if image_col and row[image_col].strip() else None
             }
             questions.append(question)
 
@@ -58,6 +62,8 @@ def parse_csv(file_path):
 def create_pdf(questions, output_pdf):
     tmp_pdf = "temp.pdf"
     c = canvas.Canvas(tmp_pdf, pagesize=letter)
+    form = c.acroForm
+
     width, height = letter
 
     y_position = height - 50
@@ -82,6 +88,25 @@ def create_pdf(questions, output_pdf):
             c.showPage()
             y_position = height - 50
 
+        # Add image if available
+        if question['image']:
+            image_path = os.path.join("images", question['image'])
+            if os.path.exists(image_path):
+                img = utils.ImageReader(image_path)
+                iw, ih = img.getSize()
+                aspect = iw / ih
+                new_width = 400
+                new_height = new_width / aspect
+                c.drawImage(image_path, 70, y_position - new_height - 10, width=new_width, height=new_height)
+                y_position -= new_height + 20
+
+        y_position -= 20
+
+        if y_position < 100:
+            c.showPage()
+            y_position = height - 50
+
+
         title = f"{question['label']}. {question['short_q']}"
         c.setFont("Helvetica-Bold", 12)
         c.drawString(50, y_position, title)
@@ -94,23 +119,35 @@ def create_pdf(questions, output_pdf):
             c.drawString(70, y_position, line)
             y_position -= 15
 
-        y_position -= 20
+        if y_position < 100:
+            c.showPage()
+            y_position = height - 50
 
+
+
+        y_position -= 25
         c.setFont("Helvetica", 10)
-        x_start = 150
+        x_start = 100
         labels = ["5%ile", "50%ile", "95%ile"]
         rects = []
         for i, perc in enumerate(labels):
             field_name = f"{question['label']}_{perc}"
-            rect_x = x_start + i * 110
-            c.rect(rect_x, y_position, 100, 20)
-            rects.append((field_name,
-                          [rect_x, y_position, rect_x + 100, y_position + 20]))
+            rect_x = x_start + i * 170
+            #c.rect(rect_x, y_position, 100, 20)
+            #rects.append((field_name,
+            #              [rect_x, y_position, rect_x + 100, y_position + 20]))
 
-        y_position -= 25
+            form.textfield(name=field_name, tooltip=perc,
+                   x=rect_x, y=y_position, borderStyle='inset',
+                   borderColor=green, fillColor=None, 
+                   width=100,
+                   height=25,
+                   textColor=blue, forceBorder=True)
+
+        y_position -= 15
         for i, perc in enumerate(labels):
-            c.drawString(x_start + i * 110 + 35, y_position, perc)
-        y_position -= 30
+            c.drawString(x_start + i * 170 + 35, y_position, perc)
+        y_position -= 15
 
         field_names.extend(rects)
 
