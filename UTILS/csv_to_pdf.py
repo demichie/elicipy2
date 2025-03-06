@@ -67,6 +67,7 @@ def create_pdf(questions, output_pdf):
     width, height = letter
 
     y_position = height - 50
+
     field_names = []
 
     current_category = None
@@ -82,7 +83,27 @@ def create_pdf(questions, output_pdf):
             c.setFont("Helvetica-Bold", 16)
             c.drawCentredString(width / 2, y_position,
                                 current_category.upper())
-            y_position -= 30
+            y_position -= 35
+
+
+            c.setFont("Helvetica", 10)
+            x_start = 100
+            labels = ["First Name", "Last Name", "email"]
+            rects = []
+            for i, label in enumerate(labels):
+                rect_x = x_start + i * 170
+    
+                form.textfield(name=label,
+                       x=rect_x, y=y_position, borderStyle='inset',
+                       borderColor=green, fillColor=None, 
+                       width=100,
+                       height=25,
+                       textColor=blue, forceBorder=True)
+
+            y_position -= 15
+            for i, label in enumerate(labels):
+                c.drawString(x_start + i * 170 + 25, y_position, label)
+            y_position -= 15
 
         if y_position < 100:
             c.showPage()
