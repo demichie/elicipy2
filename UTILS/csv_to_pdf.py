@@ -4,7 +4,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import simpleSplit
 from reportlab.lib import utils
-from reportlab.lib.colors import magenta, pink, blue, green
+from reportlab.lib.colors import blue, green
 from pdfrw import PdfReader, PdfWriter, PdfDict, PdfName, PdfArray
 
 
@@ -21,8 +21,9 @@ def parse_csv(file_path):
                               None)
         image_col = next((col for col in columns if "IMAGE" in col), None)
 
-        if not all(
-            [label_col, short_q_col, long_q_cols, units_col, quest_type_col]):
+        if not all([label_col, short_q_col, long_q_cols,
+                    units_col, quest_type_col]):
+
             raise ValueError("Missing required columns in the CSV file")
 
         if len(long_q_cols) > 1:
@@ -38,7 +39,8 @@ def parse_csv(file_path):
                 None)
             if not long_q_col:
                 raise ValueError(
-                    f"Selected language '{chosen_lang}' not found in the CSV file"
+                    f"Selected language '{chosen_lang}' not found " +
+                    "in the CSV file"
                 )
         else:
             long_q_col = long_q_cols[0]
@@ -47,12 +49,19 @@ def parse_csv(file_path):
 
         for row in reader:
             question = {
-                "label": row[label_col],
-                "short_q": row[short_q_col],
-                "long_q": row[long_q_col],
-                "units": row[units_col],
-                "quest_type": row[quest_type_col],
-                "image": row[image_col] if image_col and row[image_col].strip() else None
+                "label":
+                row[label_col],
+                "short_q":
+                row[short_q_col],
+                "long_q":
+                row[long_q_col],
+                "units":
+                row[units_col],
+                "quest_type":
+                row[quest_type_col],
+                "image":
+                row[image_col]
+                if image_col and row[image_col].strip() else None
             }
             questions.append(question)
 
@@ -70,6 +79,8 @@ def create_pdf(questions, output_pdf):
 
     field_names = []
 
+    page = 1
+
     current_category = None
     for question in questions:
         if question['quest_type'] != current_category:
@@ -78,6 +89,8 @@ def create_pdf(questions, output_pdf):
 
                 c.showPage()
                 y_position = height - 50
+                firstPage_target = page
+                page += 1
 
             current_category = question['quest_type']
             c.setFont("Helvetica-Bold", 16)
@@ -85,20 +98,23 @@ def create_pdf(questions, output_pdf):
                                 current_category.upper())
             y_position -= 35
 
-
             c.setFont("Helvetica", 10)
             x_start = 100
             labels = ["First Name", "Last Name", "email"]
             rects = []
             for i, label in enumerate(labels):
                 rect_x = x_start + i * 170
-    
+
                 form.textfield(name=label,
-                       x=rect_x, y=y_position, borderStyle='inset',
-                       borderColor=green, fillColor=None, 
-                       width=100,
-                       height=25,
-                       textColor=blue, forceBorder=True)
+                               x=rect_x,
+                               y=y_position,
+                               borderStyle='inset',
+                               borderColor=green,
+                               fillColor=None,
+                               width=100,
+                               height=25,
+                               textColor=blue,
+                               forceBorder=True)
 
             y_position -= 15
             for i, label in enumerate(labels):
@@ -108,6 +124,7 @@ def create_pdf(questions, output_pdf):
         if y_position < 100:
             c.showPage()
             y_position = height - 50
+            page += 1
 
         # Add image if available
         if question['image']:
@@ -118,7 +135,11 @@ def create_pdf(questions, output_pdf):
                 aspect = iw / ih
                 new_width = 400
                 new_height = new_width / aspect
-                c.drawImage(image_path, 70, y_position - new_height - 10, width=new_width, height=new_height)
+                c.drawImage(image_path,
+                            70,
+                            y_position - new_height - 10,
+                            width=new_width,
+                            height=new_height)
                 y_position -= new_height + 20
 
         y_position -= 20
@@ -126,7 +147,7 @@ def create_pdf(questions, output_pdf):
         if y_position < 100:
             c.showPage()
             y_position = height - 50
-
+            page += 1
 
         title = f"{question['label']}. {question['short_q']}"
         c.setFont("Helvetica-Bold", 12)
@@ -143,8 +164,7 @@ def create_pdf(questions, output_pdf):
         if y_position < 100:
             c.showPage()
             y_position = height - 50
-
-
+            page += 1
 
         y_position -= 25
         c.setFont("Helvetica", 10)
@@ -154,16 +174,18 @@ def create_pdf(questions, output_pdf):
         for i, perc in enumerate(labels):
             field_name = f"{question['label']}_{perc}"
             rect_x = x_start + i * 170
-            #c.rect(rect_x, y_position, 100, 20)
-            #rects.append((field_name,
-            #              [rect_x, y_position, rect_x + 100, y_position + 20]))
 
-            form.textfield(name=field_name, tooltip=perc,
-                   x=rect_x, y=y_position, borderStyle='inset',
-                   borderColor=green, fillColor=None, 
-                   width=100,
-                   height=25,
-                   textColor=blue, forceBorder=True)
+            form.textfield(name=field_name,
+                           tooltip=perc,
+                           x=rect_x,
+                           y=y_position,
+                           borderStyle='inset',
+                           borderColor=green,
+                           fillColor=None,
+                           width=100,
+                           height=25,
+                           textColor=blue,
+                           forceBorder=True)
 
         y_position -= 15
         for i, perc in enumerate(labels):
@@ -175,9 +197,10 @@ def create_pdf(questions, output_pdf):
     c.save()
 
     # Add fillable fields
-    writer = PdfWriter()
+    writer_seed = PdfWriter()
+    writer_target = PdfWriter()
     reader = PdfReader(tmp_pdf)
-    for page in reader.pages:
+    for i, page in enumerate(reader.pages):
         annotations = []
         for field_name, rect in field_names:
             annotation = PdfDict(Subtype=PdfName.Widget,
@@ -190,15 +213,23 @@ def create_pdf(questions, output_pdf):
 
         if annotations:
             page.Annots = PdfArray(annotations)
-        writer.addpage(page)
 
-    writer.write(output_pdf)
+        if i < firstPage_target:
+
+            writer_seed.addpage(page)
+
+        else:
+
+            writer_target.addpage(page)
+
+    writer_seed.write(output_pdf + '_seed.pdf')
+    writer_target.write(output_pdf + '_target.pdf')
     os.remove(tmp_pdf)
 
 
 if __name__ == "__main__":
     csv_file = "questionnaire.csv"
-    output_pdf = "questionnaire_form.pdf"
+    output_pdf = "questionnaire_form"
     questions = parse_csv(csv_file)
     create_pdf(questions, output_pdf)
     print(f"PDF form created: {output_pdf}")

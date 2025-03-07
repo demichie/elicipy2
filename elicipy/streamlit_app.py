@@ -375,7 +375,7 @@ if PASSWORD_HASH is None:
 
     config = dotenv_values(".env")
     PASSWORD_HASH = config['PASSWORD_HASH']
-    
+
 
 def check_password():
 
@@ -390,7 +390,7 @@ def check_password():
     # Verify the entered password against the stored hash.
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
-        
+
     if not st.session_state.authenticated:
         password = st.text_input("Enter password:", type="password")
         if st.button("Login"):
@@ -456,14 +456,14 @@ def main():
 
         if check_password():
 
-            show_form(path,current_path)
+            show_form(path, current_path)
 
     else:
 
-        show_form(path,current_path)
+        show_form(path, current_path)
 
 
-def show_form(path,current_path):
+def show_form(path, current_path):
 
     hide_streamlit_style = """
             <style>
@@ -474,8 +474,6 @@ def show_form(path,current_path):
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
     st.title("Elicitation form")
-
-
 
     from createWebformDict import quest_type
 
