@@ -36,16 +36,16 @@ nolabel_flag = False
 # group_list = [5,6]
 
 # groups of target questions for trend plots
-trend_groups = [ [6,7,8,9,10] ]
+trend_groups = [[6, 7, 8, 9, 10]]
 
 # groups of target questions for violin plots
-violin_groups = [ [6,7,8,9,10] ]
+violin_groups = [[6, 7, 8, 9, 10]]
 
 # groups of target questions for pie charts
-pie_groups = [ [3,4,5],[6,7,8,9,10] ]
+pie_groups = [[3, 4, 5], [6, 7, 8, 9, 10]]
 
 # groups of target questions for ELICIPY index plots
-index_groups = [[1,2,3,4],[5,6,7,8]]
+index_groups = [[1, 2, 3, 4], [5, 6, 7, 8]]
 
 n_sample = 10000
 n_bins = 10
@@ -94,6 +94,3 @@ cal_power = 1
 # tree parameters
 first_node_list = [1]
 first_node_str_list = ['']
-
-
-
