@@ -6,7 +6,8 @@ password_protected = False
 # datarepo = 'local'
 datarepo = 'local'
 
-# Github repository for answers, used only when datarepo='github' or 'local_github'
+# Github repository for answers, used only when
+# datarepo='github' or 'local_github'
 RepositoryData = 'test_answers'
 
 # Parameters used only when datarepo='local' or 'local_github'
