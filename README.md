@@ -8,19 +8,23 @@ Streamlit webapp, that can run locally or from streamlit.io (read below).
 
 The analysis is always done locally.
 
-All the elicitation data, included the input files for the creation of the webapp and for analysis, are in subfolders of the ELICITATIONS folder.
+All the elicitation data, included the input files for the creation of the
+webapp and for analysis, are in subfolders of the ELICITATIONS folder.
 The files required to run an elicitation are:
 1. createWebformDict.py
 1. elicipyDict.py
 1. DATA/questionnaire.csv
 
-When there are multiple elicitations folders inside ELICITATION, the elicitation for the Webapp is specified in the file ElicitationCase.py
+When there are multiple elicitations folders inside ELICITATION, the
+elicitation for the Webapp is specified in the file ElicitationCase.py
 
 ## Installation
 
 To install Elicipy, first create a pip or anaconda environement with Python >=3.10.
 
-Then, activate the environment, download a [copy](https://github.com/demichie/elicipy2/archive/refs/heads/main.zip 'zip') of the repository and unzip it.
+Then, activate the environment, download a
+[copy](https://github.com/demichie/elicipy2/archive/refs/heads/main.zip 'zip')
+of the repository and unzip it.
 
 From the command line, go to the main folder of elicipy and type:
 
@@ -39,14 +43,21 @@ ___
 
 Here there are steps to install and run the webapp from streamlit.io.
 
-On Github, you need two repositories, one to collect the answers and on hosting the webapp streamlit_app.py.
-
+On Github, you need two repositories, one to collect the answers and on
+hosting the webapp streamlit_app.py.
 
 
 ### GITHUB STREAMLIT REPOSITORY
 
-1. To create the new repository for the answers, go to the you github main page, click on the tab "Repositories", and then on the green button "New", on the top-right above the list of your repositories. Write the "Repository name" for your asnwer repository, set this repository to "Private" if you don't want to show the answers, and finally click on "Create repository" at the bottom.
-1. Go to the Elicipy repository (https://github.com/demichie/elicipy2) and create a copy of the repository by clicking on the green button "Use this template" on the top-right and selecting "Create a new repository". Input the name of the new repository and click on the green button "Create repository" at bottom of the page.
+1. To create the new repository for the answers, go to the you github main page,
+   click on the tab "Repositories", and then on the green button "New", on the
+   top-right above the list of your repositories. Write the "Repository name" for
+   your asnwer repository, set this repository to "Private" if you don't want to
+   show the answers, and finally click on "Create repository" at the bottom.
+1. Go to the Elicipy repository (https://github.com/demichie/elicipy2) and create
+   a copy of the repository by clicking on the green button "Use this template" on
+   the top-right and selecting "Create a new repository". Input the name of the new
+   repository and click on the green button "Create repository" at bottom of the page.
 1. Edit in the input file createWebformDict.py the fields datarepo (set to 'github') and the RepositoryData (with the new github repository
    for the answers).
 1. Set in the input file createWebformDict.py the quest_type variable to
@@ -126,7 +137,6 @@ On your screen you will see these lines (with different web addresses):
 ```
 
 The "Network URL" is the link to share. 
-
 
 
 ### Webapp running locally with data saved on Github
@@ -216,14 +226,12 @@ ___
 
 > elicipy
 
-
 ### Analysis with Webapp hosted locally and answers saved locally
 1. In ElicipyDict.py set datarepo = 'local'
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
 
 > elicipy
-
 
 The analysis results are saved in the folder output_dir (set in ElicipyDict.py)
 
