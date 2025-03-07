@@ -83,8 +83,8 @@ hosting the webapp streamlit_app.py.
 
 1. Login with github account.
 1. On the top-right, click on "Create app".
-1. Select "Deploy a Public app form GitHub" by clicking on "Deply now" to deploy the
-   app from the github repository.
+1. Select "Deploy a Public app form GitHub" by clicking on "Deply now" to deploy
+   the app from the github repository.
 1. In the "Repository" field, select the github repository for the webapp (i.e. the
    repository you generated from the template).
 1. In the "Main file path", select the file "elicipy/streamlit_app.py".
@@ -130,7 +130,7 @@ get the link.
  SMTP_SERVER_ADDRESS = ''
 
  PORT =
- 
+
 1. Edit the file "ElicitationCase.py" with the elicitation folder name.
 1. Start the webapp with:
 
@@ -151,7 +151,7 @@ The "Network URL" is the link to share.
 ### Webapp running locally with data saved on Github
 
 1. On Github, you need a repository to collect the answers (create a new
-repository).
+   repository).
 1. Click on the top-right (on your github user icon), and from the menu click
    on "Settings".
 1. At the bottom of the left panel, click on "Developer settings".
