@@ -8,21 +8,21 @@ Streamlit webapp, that can run locally or from streamlit.io (read below).
 
 The analysis is always done locally.
 
-All the elicitation data, included the input files for the creation of the webapp and for analysis, are in subfolders of the ELICITATIONS folder. 
+All the elicitation data, included the input files for the creation of the webapp and for analysis, are in subfolders of the ELICITATIONS folder.
 The files required to run an elicitation are:
 1. createWebformDict.py
 1. elicipyDict.py
-1. DATA/questionnaire.csv 
+1. DATA/questionnaire.csv
 
 When there are multiple elicitations folders inside ELICITATION, the elicitation for the Webapp is specified in the file ElicitationCase.py
 
-## Installation 
+## Installation
 
 To install Elicipy, first create a pip or anaconda environement with Python >=3.10.
 
 Then, activate the environment, download a [copy](https://github.com/demichie/elicipy2/archive/refs/heads/main.zip 'zip') of the repository and unzip it.
 
-From the command line, go to the main folder of elicipy and type: 
+From the command line, go to the main folder of elicipy and type:
 
 > pip install .
 
@@ -46,7 +46,7 @@ On Github, you need two repositories, one to collect the answers and on hosting 
 ### GITHUB STREAMLIT REPOSITORY
 
 1. To create the new repository for the answers, go to the you github main page, click on the tab "Repositories", and then on the green button "New", on the top-right above the list of your repositories. Write the "Repository name" for your asnwer repository, set this repository to "Private" if you don't want to show the answers, and finally click on "Create repository" at the bottom.
-1. Go to the Elicipy repository (https://github.com/demichie/elicipy2) and create a copy of the repository by clicking on the green button "Use this template" on the top-right and selecting "Create a new repository". Input the name of the new repository and click on the green button "Create repository" at bottom of the page. 
+1. Go to the Elicipy repository (https://github.com/demichie/elicipy2) and create a copy of the repository by clicking on the green button "Use this template" on the top-right and selecting "Create a new repository". Input the name of the new repository and click on the green button "Create repository" at bottom of the page.
 1. Edit in the input file createWebformDict.py the fields datarepo (set to 'github') and the RepositoryData (with the new github repository
    for the answers).
 1. Set in the input file createWebformDict.py the quest_type variable to
@@ -79,16 +79,16 @@ On Github, you need two repositories, one to collect the answers and on hosting 
 
    github_token = "insert_here_your_token"
 
-1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines in the Secrets texbox (fill with your email data). 
+1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines in the Secrets texbox (fill with your email data).
 
  SENDER_ADDRESS = ''
 
  SENDER_NAME = ''
- 
+
  SENDER_PASSWORD = ''
 
  SMTP_SERVER_ADDRESS = ''
- 
+
  PORT =
 
 1. Click on "Save".
@@ -99,16 +99,16 @@ Now you should see your webform, and on the top-right you can click on "Share" t
 ### Webapp running locally with data saved locally
 
 1. Edit in the input file createWebformDict.py the fields datarepo (set to 'local').
-1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines (fill with your email data). 
+1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines (fill with your email data).
 
  SENDER_ADDRESS = ''
 
  SENDER_NAME = ''
- 
+
  SENDER_PASSWORD = ''
 
  SMTP_SERVER_ADDRESS = ''
- 
+
  PORT =
 1. Edit the file "ElicitationCase.py" with the elicitation folder name.
 1. Start the webapp with:
@@ -121,7 +121,7 @@ On your screen you will see these lines (with different web addresses):
   You can now view your Streamlit app in your browser.
 
   Local URL: http://localhost:8501
-  
+ 
   Network URL: http://10.246.1.121:8501
 ```
 
@@ -142,26 +142,26 @@ repository).
 1. Give a name.
 1. Select scope "Repo".
 1. At the end of the page click on "Generate token".
-1. Copy the newly generated token. 
+1. Copy the newly generated token.
 1. On your computer, edit in the input file createWebformDict.py the fields datarepo (set to 'local_github') and fill the RepositoryData field (with the new github repository
    for the answers), the user filed and the github_token_field.
-1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines (fill with your email data). 
+1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines (fill with your email data).
 
  SENDER_ADDRESS = ''
 
  SENDER_NAME = ''
- 
+
  SENDER_PASSWORD = ''
 
  SMTP_SERVER_ADDRESS = ''
- 
+
  PORT =
-   
+  
 1. Edit the file "ElicitationCase.py" with the elicitation folder name
 1. Start the webapp with:
 
 > elicipy_form
- 
+
 On your screen you will see these lines (with different web addresses):
 
 ```
@@ -171,7 +171,7 @@ On your screen you will see these lines (with different web addresses):
   Network URL: http://10.246.1.121:8501
 ```
 
-The "Network URL" is the link to share. 
+The "Network URL" is the link to share.
 
 ### Password protected form
 
@@ -183,7 +183,7 @@ Then, run the script generate_hash.py from the elicipy folder:
 
 > python generate_hash.py
 
-You will see on screen your hashed password. 
+You will see on screen your hashed password.
 
 ```
   Your hashed password (store this in .env or secrets.toml):
@@ -202,7 +202,7 @@ ___
 
 ### Analysis with Webapp hosted on streamlit.io
 
-1. Copy the elicitation folder containing DATA from the ELICITATIONS folder of the Webapp repository to the ELICITATIONS folder on your computer 
+1. Copy the elicitation folder containing DATA from the ELICITATIONS folder of the Webapp repository to the ELICITATIONS folder on your computer
 1. On your computer, in the file ElicipyDict.py, set datarepo = 'github' and RepositoryData = the name of the Github repository with the answers
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
