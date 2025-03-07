@@ -1,3 +1,10 @@
+[![SQAaaS badge](https://github.com/EOSC-synergy/SQAaaS/raw/master/badges/badges_150x116/badge_software_gold.png)](https://api.eu.badgr.io/public/assertions/ihlyfRInRwOpqQArm2Nd0w "SQAaaS gold badge achieved")
+
+[![SQAaaS badge shields.io](https://img.shields.io/badge/sqaaas%20software-gold-yellow)](https://api.eu.badgr.io/public/assertions/ihlyfRInRwOpqQArm2Nd0w "SQAaaS gold badge achieved")
+
+[![DOI](https://zenodo.org/badge/942504958.svg)](https://doi.org/10.5281/zenodo.14990328)
+
+
 # Elicipy 2
 
 Elicipy is an Expert elicitation Python tool, aimed at both the collection of
