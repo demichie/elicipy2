@@ -6,7 +6,6 @@ from datetime import datetime
 import os
 import os.path
 
-
 folder = "DTT_TO_CSV"
 
 if os.path.isdir(folder):
@@ -207,10 +206,9 @@ for count, idx in enumerate(idx_experts):
             writer.writerow(columns)  # Write the updated header row
             writer.writerow(data)  # Write the merged data row
     else:
-        print(
-            "Warning: Exp %s has not given answers to one or more seed, \
-             saving his/her answers in a separate folder"
-            % names[count].rsplit(' ', 1)[1])
+        print("Warning: Exp %s has not given answers to one or more seed, \
+             saving his/her answers in a separate folder" %
+              names[count].rsplit(' ', 1)[1])
         if os.path.isdir('./DTT_TO_CSV/seed_missing'):
             pass
         else:
@@ -293,16 +291,15 @@ for count, idx in enumerate(idx_experts):
     # Write the merged data to a new CSV file
     if all(data) is True:
         new_filename = './DTT_TO_CSV/target/questionnaire_' + dt_string \
-                      + '_Output.csv'
+            + '_Output.csv'
         with open(new_filename, 'w', newline='') as outfile:
             writer = csv.writer(outfile)
             writer.writerow(columns)  # Write the updated header row
             writer.writerow(data)  # Write the merged data row
     else:
-        print(
-            "Warning: Exp %s has not given answers to one or more target, \
-             saving his/her answers in a separate folder"
-            % names[count].rsplit(' ', 1)[1])
+        print("Warning: Exp %s has not given answers to one or more target, \
+             saving his/her answers in a separate folder" %
+              names[count].rsplit(' ', 1)[1])
         if os.path.isdir('./DTT_TO_CSV/target_missing'):
             pass
         else:
