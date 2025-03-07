@@ -1,5 +1,8 @@
-def weighted_quantile(values, quantiles, sample_weight=None,
-                      values_sorted=False, old_style=False):
+def weighted_quantile(values,
+                      quantiles,
+                      sample_weight=None,
+                      values_sorted=False,
+                      old_style=False):
     """ Very close to numpy.percentile, but supports weights.
     NOTE: quantiles should be in [0, 1]!
     :param values: numpy.array with data
@@ -25,8 +28,8 @@ def weighted_quantile(values, quantiles, sample_weight=None,
     values[np.isnan(values)] = 0
     sample_weight[np.isnan(values)] = 0
 
-    assert np.all(quantiles >= 0) and np.all(quantiles <= 1), \
-        'quantiles should be in [0, 1]'
+    if not (np.all(quantiles >= 0) and np.all(quantiles <= 1)):
+        raise ValueError("quantiles should be in [0, 1]")
 
     if not values_sorted:
         sorter = np.argsort(values)
@@ -110,7 +113,7 @@ def calculate_index(TQ_array, weight, background_measure):
         ma = np.ma.MaskedArray(indexTot[i, :, :],
                                mask=np.isnan(indexTot[i, :, :]))
         indexMean[i] = np.average(ma, weights=weightTable)
-        variance = np.average((ma-indexMean[i])**2, weights=weightTable)
+        variance = np.average((ma - indexMean[i])**2, weights=weightTable)
         indexStd[i] = np.sqrt(variance)
 
     return indexMean, indexStd, indexQuantiles

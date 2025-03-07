@@ -1,11 +1,11 @@
-import os
+import subprocess
 import pkg_resources
 
 
 def run_streamlit():
     """Launch the Streamlit app from the installed package."""
     app_path = pkg_resources.resource_filename("elicipy", "streamlit_app.py")
-    os.system(f"streamlit run {app_path}")
+    subprocess.run(["streamlit", "run", app_path], check=True)
 
 
 if __name__ == "__main__":

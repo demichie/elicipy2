@@ -36,6 +36,7 @@ def merge_csv(input_dir, seed, target, group, csv_file, label_flag,
     import os
     import time
     import glob
+    import ast
     import pandas as pd
     import numpy as np
     from itertools import combinations
@@ -117,7 +118,7 @@ def merge_csv(input_dir, seed, target, group, csv_file, label_flag,
             if type(fgroup) is str:
 
                 fgroup = fgroup.split(";")
-                fgroup = [eval(i) for i in fgroup]
+                fgroup = [ast.literal_eval(i) for i in fgroup]
 
             else:
 
@@ -384,7 +385,7 @@ def merge_csv(input_dir, seed, target, group, csv_file, label_flag,
             if type(fgroup) is str:
 
                 fgroup = fgroup.split(";")
-                fgroup = [eval(i) for i in fgroup]
+                fgroup = [ast.literal_eval(i) for i in fgroup]
 
             else:
 
@@ -569,10 +570,8 @@ def merge_csv(input_dir, seed, target, group, csv_file, label_flag,
 
         if seedExists:
 
-            print(
-                "       Checking correspondance between seed and target " +
-                "experts"
-            )
+            print("       Checking correspondance between seed and target " +
+                  "experts")
 
             check_matrix = np.zeros((len(flname_target), len(flname_seed)))
 

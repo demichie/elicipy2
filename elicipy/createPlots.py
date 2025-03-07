@@ -428,8 +428,6 @@ def create_figure_violin(
 
     """
 
-    from scipy import stats
-
     if not os.path.exists(output_dir + "/" + "Violin_PNGPDF"):
         os.makedirs(output_dir + "/" + "Violin_PNGPDF")
 
@@ -459,42 +457,10 @@ def create_figure_violin(
 
         if (ncols > 1):
 
-            max_densities = []  # To store the max densities for each column
-            max_val = 0.0
-
-            # Iterate over the columns of y
-            for i in range(y.shape[1]):
-
-                column_data = y[:, i]  # Extract the i-th column
-
-                # Ensure the column is 1D
-                column_data = column_data.flatten()
-
-                # Calculate the KDE (kernel density estimate) for the column
-                # data
-                kde = stats.gaussian_kde(column_data)
-
-                # Evaluate the KDE over a range of values (e.g., from min to
-                # max of column_data)
-                kde_values = kde.evaluate(
-                    np.linspace(TQ_minVals[violin_group[0] - n_SQ],
-                                TQ_minVals[violin_group[0] - n_SQ], 100))
-
-                # Find the maximum of the KDE values (this gives the maximum
-                # probability density)
-                max_density = np.max(kde_values)
-
-                # Append max_density for the current column to the list
-                max_densities.append(max_density)
-                max_val = max(max_val, max_density)
-
-            violin_width = np.array([val / max_val for val in max_densities])
-            # print('violin_width',violin_width)
-
             vp_EW = axes[EW_col].violinplot(y,
                                             showmeans=False,
-                                            showmedians=True,
-                                            widths=0.9 * violin_width)
+                                            showmedians=False,
+                                            widths=0.25)
 
             axes[EW_col].set_title('EW')
             axes[EW_col].set_xticks(x)
@@ -528,17 +494,16 @@ def create_figure_violin(
             axes.set_ylim(TQ_minVals[violin_group[0] - n_SQ],
                           TQ_maxVals[violin_group[0] - n_SQ])
 
-        # Change the width of the vertical line (median)
-        # 'cmedians' controls the median line
-        for partname in ('cmedians', 'cbars', 'cmins', 'cmaxes'):
-            vp_EW[partname].set_linewidth(0.5)  # Adjust width
-            vp_EW[partname].set_color('g')  # Set color to red
-
         # Set the color of the violin patches
         for pc in vp_EW['bodies']:
             pc.set_facecolor('g')
             pc.set_edgecolor('g')
-            pc.set_linewidth(0.05)
+            pc.set_linewidth(0.25)
+
+        # Make all the violin statistics marks green:
+        for partname in ('cbars', 'cmins', 'cmaxes'):
+            vp = vp_EW[partname]
+            vp.set_edgecolor('g')
 
         y = q_EW[violin_group, 1]
         lower_error = q_EW[violin_group, 1] - \
@@ -568,41 +533,10 @@ def create_figure_violin(
 
         y = samples[:, violin_group]
 
-        max_densities = []  # To store the max densities for each column
-        max_val = 0.0
-
-        # Iterate over the columns of y
-        for i in range(y.shape[1]):
-
-            column_data = y[:, i]  # Extract the i-th column
-
-            # Ensure the column is 1D
-            column_data = column_data.flatten()
-
-            # Calculate the KDE (kernel density estimate) for the column data
-            kde = stats.gaussian_kde(column_data)
-
-            # Evaluate the KDE over a range of values (e.g., from min to
-            # max of column_data)
-            kde_values = kde.evaluate(
-                np.linspace(TQ_minVals[violin_group[0] - n_SQ],
-                            TQ_minVals[violin_group[0] - n_SQ], 100))
-
-            # Find the maximum of the KDE values (this gives the maximum
-            # probability density)
-            max_density = np.max(kde_values)
-
-            # Append max_density for the current column to the list
-            max_densities.append(max_density)
-            max_val = max(max_val, max_density)
-
-        violin_width = np.array([val / max_val for val in max_densities])
-        # print('violin_width',violin_width)
-
         vp_Cooke = axes[Cooke_col].violinplot(y,
                                               showmeans=False,
-                                              showmedians=True,
-                                              widths=0.9 * violin_width)
+                                              showmedians=False,
+                                              widths=0.25)
 
         axes[Cooke_col].set_title('Cooke')
 
@@ -618,17 +552,16 @@ def create_figure_violin(
         axes[Cooke_col].set_ylim(TQ_minVals[violin_group[0] - n_SQ],
                                  TQ_maxVals[violin_group[0] - n_SQ])
 
-        # Change the width of the vertical line (median)
-        # 'cmedians' controls the median line
-        for partname in ('cmedians', 'cbars', 'cmins', 'cmaxes'):
-            vp_Cooke[partname].set_linewidth(0.5)  # Adjust width
-            vp_Cooke[partname].set_color('r')  # Set color to red
-
         # Set the color of the violin patches
         for pc in vp_Cooke['bodies']:
             pc.set_facecolor('r')
             pc.set_edgecolor('r')
-            pc.set_linewidth(0.15)
+            pc.set_linewidth(0.25)
+
+        # Make all the violin statistics marks red:
+        for partname in ('cbars', 'cmins', 'cmaxes'):
+            vp = vp_Cooke[partname]
+            vp.set_edgecolor('r')
 
         y = q_Cooke[violin_group, 1]
         lower_error = q_Cooke[violin_group, 1] - \
@@ -650,41 +583,10 @@ def create_figure_violin(
 
         y = samples_erf[:, violin_group]
 
-        max_densities = []  # To store the max densities for each column
-        max_val = 0.0
-
-        # Iterate over the columns of y
-        for i in range(y.shape[1]):
-
-            column_data = y[:, i]  # Extract the i-th column
-
-            # Ensure the column is 1D
-            column_data = column_data.flatten()
-
-            # Calculate the KDE (kernel density estimate) for the column data
-            kde = stats.gaussian_kde(column_data)
-
-            # Evaluate the KDE over a range of values (e.g., from min to
-            # max of column_data)
-            kde_values = kde.evaluate(
-                np.linspace(TQ_minVals[violin_group[0] - n_SQ],
-                            TQ_minVals[violin_group[0] - n_SQ], 100))
-
-            # Find the maximum of the KDE values (this gives the maximum
-            # probability density)
-            max_density = np.max(kde_values)
-
-            # Append max_density for the current column to the list
-            max_densities.append(max_density)
-            max_val = max(max_val, max_density)
-
-        violin_width = np.array([val / max_val for val in max_densities])
-        # print('violin_width',violin_width)
-
         vp_ERF = axes[ERF_col].violinplot(y,
                                           showmeans=False,
                                           showmedians=False,
-                                          widths=0.9 * violin_width)
+                                          widths=0.25)
 
         axes[ERF_col].set_title('ERF')
 
@@ -700,17 +602,16 @@ def create_figure_violin(
         axes[ERF_col].set_ylim(TQ_minVals[violin_group[0] - n_SQ],
                                TQ_maxVals[violin_group[0] - n_SQ])
 
-        # Change the width of the vertical line (median)
-        # 'cmedians' controls the median line
-        for partname in ('cmedians', 'cbars', 'cmins', 'cmaxes'):
-            vp_ERF[partname].set_linewidth(0.5)  # Adjust width
-            vp_ERF[partname].set_color('b')  # Set color to red
-
         # Set the color of the violin patches
         for pc in vp_ERF['bodies']:
             pc.set_facecolor('b')
             pc.set_edgecolor('b')
-            pc.set_linewidth(0.15)
+            pc.set_linewidth(0.25)
+
+        # Make all the violin statistics marks blue:
+        for partname in ('cbars', 'cmins', 'cmaxes'):
+            vp = vp_ERF[partname]
+            vp.set_edgecolor('b')
 
         y = q_erf[violin_group, 1]
         lower_error = q_erf[violin_group, 1] - \
@@ -819,10 +720,11 @@ def create_figure_index(
 
     if EW_flag:
 
-        x = indexMean_EW[index_group - n_SQ]
-        lower_error = indexStd_EW[index_group - n_SQ]
-        upper_error = indexStd_EW[index_group - n_SQ]
+        x = indexMean_EW[index_group-n_SQ]
+        lower_error = indexStd_EW[index_group-n_SQ]
+        upper_error = indexStd_EW[index_group-n_SQ]
         error = [lower_error, upper_error]
+
         """
         x = indexQuantiles_EW[index_group - n_SQ, 1]
         lower_error = x - indexQuantiles_EW[index_group - n_SQ, 0]
@@ -841,10 +743,11 @@ def create_figure_index(
 
     if Cooke_flag > 0:
 
-        x = indexMean_Cooke[index_group - n_SQ]
-        lower_error = indexStd_Cooke[index_group - n_SQ]
-        upper_error = indexStd_Cooke[index_group - n_SQ]
+        x = indexMean_Cooke[index_group-n_SQ]
+        lower_error = indexStd_Cooke[index_group-n_SQ]
+        upper_error = indexStd_Cooke[index_group-n_SQ]
         error = [lower_error, upper_error]
+
         """
         x = indexQuantiles_Cooke[index_group - n_SQ, 1]
         lower_error = x - indexQuantiles_Cooke[index_group - n_SQ, 0]
@@ -863,10 +766,11 @@ def create_figure_index(
 
     if ERF_flag > 0:
 
-        x = indexMean_erf[index_group - n_SQ]
-        lower_error = indexStd_erf[index_group - n_SQ]
-        upper_error = indexStd_erf[index_group - n_SQ]
+        x = indexMean_erf[index_group-n_SQ]
+        lower_error = indexStd_erf[index_group-n_SQ]
+        upper_error = indexStd_erf[index_group-n_SQ]
         error = [lower_error, upper_error]
+
         """
         x = indexQuantiles_erf[index_group - n_SQ, 1]
         lower_error = x - indexQuantiles_erf[index_group - n_SQ, 0]
