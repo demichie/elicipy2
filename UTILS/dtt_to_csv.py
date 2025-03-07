@@ -6,8 +6,7 @@ from datetime import datetime
 import os
 import os.path
 import re
-from collections import OrderedDict 
-
+from collections import OrderedDict
 
 folder = "DTT_TO_CSV"
 
@@ -39,8 +38,7 @@ with open(filename_rls, 'r', encoding='latin-1') as file:
             realization.append(float(colonne[2]))
 
 # Stampa la lista dei valori della quarta colonna
-print('realizations', realization) 
-
+print('realizations', realization)
 
 # -------Reading dtt--------
 # Apri il file in modalità lettura
@@ -78,10 +76,10 @@ with open(filename_dtt, 'r', encoding='latin-1') as file:
     perc3 = []
     names_f = []
     qst_txt_f = []
-    
+
     for _ in range(1):
         riga = next(lettore_csv)
-   
+
     for riga in lettore_csv:
         ie_1 = riga[0][0:5]
         idx_expert.append(" ".join(re.findall(r"[\wÀ-ÿ]+|\d+|[^\w\s]", ie_1)))
@@ -90,7 +88,8 @@ with open(filename_dtt, 'r', encoding='latin-1') as file:
         iq_1 = riga[0][15:19]
         idx_q.append(" ".join(re.findall(r"[\wÀ-ÿ]+|\d+|[^\w\s]", iq_1)))
         SQ_1 = riga[0][21:34]
-        type_and_idx_q.append(" ".join(re.findall(r"[\wÀ-ÿ]+|\d+|[^\w\s]", SQ_1)))
+        type_and_idx_q.append(" ".join(
+            re.findall(r"[\wÀ-ÿ]+|\d+|[^\w\s]", SQ_1)))
         scal1 = riga[0][34:38]
         scale.append(" ".join(re.findall(r"[\wÀ-ÿ]+|\d+|[^\w\s]", scal1)))
         perc1_1 = riga[0][38:53]
@@ -106,17 +105,17 @@ with open(filename_dtt, 'r', encoding='latin-1') as file:
     result = list(OrderedDict.fromkeys(type_and_idx_q))
     for i in range(len(result)):
         if qst_txt_f[i] == '':
-           qst_txt_f[i] = result[i]
+            qst_txt_f[i] = result[i]
 
     header = ["idx_expert", "expert_name", "idx_q", "type_and_idx_q", "scale"
-          ] + percentiles
-    dati = list(zip(idx_expert, expert_name, idx_q, type_and_idx_q, scale, perc1, perc2, perc3))
+              ] + percentiles
+    dati = list(
+        zip(idx_expert, expert_name, idx_q, type_and_idx_q, scale, perc1,
+            perc2, perc3))
     df = pd.DataFrame(dati, columns=header)
-
 
     names = list(filter(None, names_f))
     qst_txt = list(filter(None, qst_txt_f))
-
 
 # Crea un DataFrame utilizzando l'header e i dati
 
@@ -127,7 +126,6 @@ print(df)
 idx_experts = np.unique(np.array(df['idx_expert'], dtype=int))
 n_experts = idx_experts.shape[0]
 
-
 header_quest = [
     'IDX', 'LABEL', 'SHORT Q', 'LONG Q_ENG', 'UNITS', 'SCALE', 'MINVAL',
     'MAXVAL', 'REALIZATION', 'QUEST_TYPE', 'IDXMIN', 'IDXMAX', 'SUM50',
@@ -136,7 +134,7 @@ header_quest = [
 data_quest = []
 
 for count, idx in enumerate(idx_experts):
-    
+
     print('Seed Questions for Exp', idx)
     columns = []
     data = []
@@ -147,17 +145,17 @@ for count, idx in enumerate(idx_experts):
     name_parts = names[count].split()
 
     columns.append('First Name')
-    data.append(name_parts[0])  
+    data.append(name_parts[0])
 
     columns.append('Last Name')
     if len(name_parts) == 1:
-         data.append('N/A')
-    elif len(name_parts) == 2:  
-         data.append(name_parts[1])
+        data.append('N/A')
+    elif len(name_parts) == 2:
+        data.append(name_parts[1])
     elif len(name_parts) > 2:
-         words = name_parts[1:]
-         combined = " ".join(words)
-         data.append(combined)
+        words = name_parts[1:]
+        combined = " ".join(words)
+        data.append(combined)
     columns.append('Email address')
     data.append(names[count].rsplit(' ', 1)[0] + '@mail.com')
 
@@ -218,9 +216,9 @@ for count, idx in enumerate(idx_experts):
             writer.writerow(columns)  # Write the updated header row
             writer.writerow(data)  # Write the merged data row
     else:
-        print(
-            "Warning: Exp %s has not given answers to one or more seed, saving his/her answers in a separate folder"
-            % names[count].rsplit(' ', 1)[0])
+        print("Warning: Exp %s has not given answers to one or more seed, "
+              "saving his/her answers in a separate folder" %
+              names[count].rsplit(' ', 1)[0])
         if os.path.isdir('./DTT_TO_CSV/seed_missing'):
             pass
         else:
@@ -246,17 +244,17 @@ for count, idx in enumerate(idx_experts):
     name_parts = names[count].split()
 
     columns.append('First Name')
-    data.append(name_parts[0])  
+    data.append(name_parts[0])
 
     columns.append('Last Name')
     if len(name_parts) == 1:
-         data.append('N/A')
-    elif len(name_parts) == 2:  
-         data.append(name_parts[1])
+        data.append('N/A')
+    elif len(name_parts) == 2:
+        data.append(name_parts[1])
     elif len(name_parts) > 2:
-         words = name_parts[1:]
-         combined = " ".join(words)
-         data.append(combined)
+        words = name_parts[1:]
+        combined = " ".join(words)
+        data.append(combined)
 
     columns.append('Email address')
     data.append(names[count].rsplit(' ', 1)[0] + '@mail.com')
@@ -267,7 +265,7 @@ for count, idx in enumerate(idx_experts):
 
     n_TQ = 0
     k = 0
-    
+
     for index, row in rslt_df.iterrows():
 
         row_tq = []
@@ -311,15 +309,15 @@ for count, idx in enumerate(idx_experts):
     # Write the merged data to a new CSV file
     if all(data) is True:
         new_filename = './DTT_TO_CSV/target/questionnaire_' + dt_string \
-                      + '_Output.csv'
+            + '_Output.csv'
         with open(new_filename, 'w', newline='') as outfile:
             writer = csv.writer(outfile)
             writer.writerow(columns)  # Write the updated header row
             writer.writerow(data)  # Write the merged data row
     else:
-        print(
-            "Warning: Exp %s has not given answers to one or more target, saving his/her answers in a separate folder"
-            % names[count].rsplit(' ', 1)[0])
+        print("Warning: Exp %s has not given answers to one or more target,"
+              "saving his/her answers in a separate folder" %
+              names[count].rsplit(' ', 1)[0])
         if os.path.isdir('./DTT_TO_CSV/target_missing'):
             pass
         else:
