@@ -1,4 +1,4 @@
-from elicipy.tools import printProgressBar
+from tools import printProgressBar
 
 
 def test_printProgressBar():
