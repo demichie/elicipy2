@@ -8,21 +8,26 @@ Streamlit webapp, that can run locally or from streamlit.io (read below).
 
 The analysis is always done locally.
 
-All the elicitation data, included the input files for the creation of the webapp and for analysis, are in subfolders of the ELICITATIONS folder. 
+All the elicitation data, included the input files for the creation of the
+webapp and for analysis, are in subfolders of the ELICITATIONS folder.
 The files required to run an elicitation are:
+
 1. createWebformDict.py
 1. elicipyDict.py
-1. DATA/questionnaire.csv 
+1. DATA/questionnaire.csv
 
-When there are multiple elicitations folders inside ELICITATION, the elicitation for the Webapp is specified in the file ElicitationCase.py
+When there are multiple elicitations folders inside ELICITATION, the
+elicitation for the Webapp is specified in the file ElicitationCase.py
 
-## Installation 
+## Installation
 
 To install Elicipy, first create a pip or anaconda environement with Python >=3.10.
 
-Then, activate the environment, download a [copy](https://github.com/demichie/elicipy2/archive/refs/heads/main.zip 'zip') of the repository and unzip it.
+Then, activate the environment, download a
+[copy](https://github.com/demichie/elicipy2/archive/refs/heads/main.zip 'zip')
+of the repository and unzip it.
 
-From the command line, go to the main folder of elicipy and type: 
+From the command line, go to the main folder of elicipy and type:
 
 > pip install .
 
@@ -39,22 +44,30 @@ ___
 
 Here there are steps to install and run the webapp from streamlit.io.
 
-On Github, you need two repositories, one to collect the answers and on hosting the webapp streamlit_app.py.
-
-
+On Github, you need two repositories, one to collect the answers and on
+hosting the webapp streamlit_app.py.
 
 ### GITHUB STREAMLIT REPOSITORY
 
-1. To create the new repository for the answers, go to the you github main page, click on the tab "Repositories", and then on the green button "New", on the top-right above the list of your repositories. Write the "Repository name" for your asnwer repository, set this repository to "Private" if you don't want to show the answers, and finally click on "Create repository" at the bottom.
-1. Go to the Elicipy repository (https://github.com/demichie/elicipy2) and create a copy of the repository by clicking on the green button "Use this template" on the top-right and selecting "Create a new repository". Input the name of the new repository and click on the green button "Create repository" at bottom of the page. 
-1. Edit in the input file createWebformDict.py the fields datarepo (set to 'github') and the RepositoryData (with the new github repository
-   for the answers).
+1. To create the new repository for the answers, go to the you github main page,
+   click on the tab "Repositories", and then on the green button "New", on the
+   top-right above the list of your repositories. Write the "Repository name" for
+   your asnwer repository, set this repository to "Private" if you don't want to
+   show the answers, and finally click on "Create repository" at the bottom.
+1. Go to the [Elicipy repository](https://github.com/demichie/elicipy2) and create
+   a copy of the repository by clicking on the green button "Use this template" on
+   the top-right and selecting "Create a new repository". Input the name of the new
+   repository and click on the green button "Create repository" at bottom of the
+   page.
+1. Edit in the input file createWebformDict.py the fields datarepo (set to 'github')
+   and the RepositoryData (with the new github repository for the answers).
 1. Set in the input file createWebformDict.py the quest_type variable to
    "seed" of "target".
 1. Edit the csv file with your questions in the DATA folder of the github
    repository for the webapp (see the questionnaire.csv file for an example of
    the format).
-1. In the ELICITATIONS folder, edit the file "ElicitationCase.py" with the elicitation folder name.
+1. In the ELICITATIONS folder, edit the file "ElicitationCase.py" with the elicitation
+   folder name.
 1. Click on the top-right (on your github user icon), and from the menu click
    on "Settings".
 1. At the bottom of the left panel, click on "Developer settings".
@@ -70,8 +83,10 @@ On Github, you need two repositories, one to collect the answers and on hosting 
 
 1. Login with github account.
 1. On the top-right, click on "Create app".
-1. Select "Deploy a Public app form GitHub" by clicking on "Deply now" to deploy the app from the github repository.
-1. In the "Repository" field, select the github repository for the webapp (i.e. the repository you generated from the template).
+1. Select "Deploy a Public app form GitHub" by clicking on "Deply now" to deploy
+   the app from the github repository.
+1. In the "Repository" field, select the github repository for the webapp (i.e. the
+   repository you generated from the template).
 1. In the "Main file path", select the file "elicipy/streamlit_app.py".
 1. Click on "Advanced settings".
 1. Select Python version 3.10.
@@ -79,37 +94,43 @@ On Github, you need two repositories, one to collect the answers and on hosting 
 
    github_token = "insert_here_your_token"
 
-1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines in the Secrets texbox (fill with your email data). 
+1. If you want to send a confirmation email after the answers are submitted, in the
+   file createWebformDict.py set confirmation_mail = True and add the following
+   lines in the Secrets texbox (fill with your email data).
 
  SENDER_ADDRESS = ''
 
  SENDER_NAME = ''
- 
+
  SENDER_PASSWORD = ''
 
  SMTP_SERVER_ADDRESS = ''
- 
+
  PORT =
 
 1. Click on "Save".
 1. Click on "Deploy".
 
-Now you should see your webform, and on the top-right you can click on "Share" to get the link.
+Now you should see your webform, and on the top-right you can click on "Share" to
+get the link.
 
 ### Webapp running locally with data saved locally
 
 1. Edit in the input file createWebformDict.py the fields datarepo (set to 'local').
-1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines (fill with your email data). 
+1. If you want to send a confirmation email after the answers are submitted, in the
+   file createWebformDict.py set confirmation_mail = True and add the following
+   lines (fill with your email data).
 
  SENDER_ADDRESS = ''
 
  SENDER_NAME = ''
- 
+
  SENDER_PASSWORD = ''
 
  SMTP_SERVER_ADDRESS = ''
- 
+
  PORT =
+
 1. Edit the file "ElicitationCase.py" with the elicitation folder name.
 1. Start the webapp with:
 
@@ -121,18 +142,16 @@ On your screen you will see these lines (with different web addresses):
   You can now view your Streamlit app in your browser.
 
   Local URL: http://localhost:8501
-  
+
   Network URL: http://10.246.1.121:8501
 ```
 
-The "Network URL" is the link to share. 
-
-
+The "Network URL" is the link to share.
 
 ### Webapp running locally with data saved on Github
 
 1. On Github, you need a repository to collect the answers (create a new
-repository).
+   repository).
 1. Click on the top-right (on your github user icon), and from the menu click
    on "Settings".
 1. At the bottom of the left panel, click on "Developer settings".
@@ -142,26 +161,29 @@ repository).
 1. Give a name.
 1. Select scope "Repo".
 1. At the end of the page click on "Generate token".
-1. Copy the newly generated token. 
-1. On your computer, edit in the input file createWebformDict.py the fields datarepo (set to 'local_github') and fill the RepositoryData field (with the new github repository
-   for the answers), the user filed and the github_token_field.
-1. If you want to send a confirmation email after the answers are submitted, in the file createWebformDict.py set confirmation_mail = True and add the following lines (fill with your email data). 
+1. Copy the newly generated token.
+1. On your computer, edit in the input file createWebformDict.py the fields datarepo
+   (set to 'local_github') and fill the RepositoryData field (with the new github
+   repository for the answers), the user filed and the github_token_field.
+1. If you want to send a confirmation email after the answers are submitted, in the
+   file createWebformDict.py set confirmation_mail = True and add the following lines
+   (fill with your email data).
 
  SENDER_ADDRESS = ''
 
  SENDER_NAME = ''
- 
+
  SENDER_PASSWORD = ''
 
  SMTP_SERVER_ADDRESS = ''
- 
+
  PORT =
-   
+
 1. Edit the file "ElicitationCase.py" with the elicitation folder name
 1. Start the webapp with:
 
 > elicipy_form
- 
+
 On your screen you will see these lines (with different web addresses):
 
 ```
@@ -171,11 +193,12 @@ On your screen you will see these lines (with different web addresses):
   Network URL: http://10.246.1.121:8501
 ```
 
-The "Network URL" is the link to share. 
+The "Network URL" is the link to share.
 
 ### Password protected form
 
-If you want to access the form with a password, first add the following line in the file createWebformDict.py:
+If you want to access the form with a password, first add the following line in
+the file createWebformDict.py:
 
 > password_protected = True
 
@@ -183,18 +206,20 @@ Then, run the script generate_hash.py from the elicipy folder:
 
 > python generate_hash.py
 
-You will see on screen your hashed password. 
+You will see on screen your hashed password.
 
 ```
   Your hashed password (store this in .env or secrets.toml):
   $2b$12$e.TWWrtWDuEfYaU7oe8RR.yUX4fOdJeA4N8flaMNnzIzte3Xqlxay
 ```
 
-Now create in the elicpy2 main folder a file .env, and add the following line to the file, replacing the passowrd_hash with that generated by the script:
+Now create in the elicpy2 main folder a file .env, and add the following line to
+the file, replacing the passowrd_hash with that generated by the script:
 
 > PASSWORD_HASH=$2b$12$e.TWWrtWDuEfYaU7oe8RR.yUX4fOdJeA4N8flaMNnzIzte3Xqlxay
 
-At this point, when you open the form webpage on a browser, you will be asked for the password first.
+At this point, when you open the form webpage on a browser, you will be asked for
+the password first.
 
 ___
 
@@ -202,28 +227,31 @@ ___
 
 ### Analysis with Webapp hosted on streamlit.io
 
-1. Copy the elicitation folder containing DATA from the ELICITATIONS folder of the Webapp repository to the ELICITATIONS folder on your computer 
-1. On your computer, in the file ElicipyDict.py, set datarepo = 'github' and RepositoryData = the name of the Github repository with the answers
+1. Copy the elicitation folder containing DATA from the ELICITATIONS folder of the
+   Webapp repository to the ELICITATIONS folder on your computer
+1. On your computer, in the file ElicipyDict.py, set datarepo = 'github' and
+   RepositoryData = the name of the Github repository with the answers
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
 
 > elicipy
 
 ### Analysis with Webapp hosted locally and answers saved on Github
-1. On your computer, in the file ElicipyDict.py, set datarepo = 'github' and RepositoryData = the name of the Github repository with the answers
+
+1. On your computer, in the file ElicipyDict.py, set datarepo = 'github' and
+   RepositoryData = the name of the Github repository with the answers
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
 
 > elicipy
 
-
 ### Analysis with Webapp hosted locally and answers saved locally
+
 1. In ElicipyDict.py set datarepo = 'local'
 1. Set the analysis parameter as desired.
 1. run the Python analysis script:
 
 > elicipy
-
 
 The analysis results are saved in the folder output_dir (set in ElicipyDict.py)
 
@@ -237,6 +265,8 @@ Authors:
 * Augusto Neri.
 
 Some of the functions are based on the scripts of the Matlab package Anduril
-(authors:  Georgios Leontaris and Oswaldo Morales-Napoles). The development of the code was supported by the project PIANETA DINAMICO, Istituto Nazionale di Geofisica e Vulcanologia, Italy.
+(authors:  Georgios Leontaris and Oswaldo Morales-Napoles). The development of
+the code was supported by the project PIANETA DINAMICO,
+Istituto Nazionale di Geofisica e Vulcanologia, Italy.
 
 
