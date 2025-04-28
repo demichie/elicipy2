@@ -1693,6 +1693,19 @@ def run_elicitation(argv):
                 fmt="%1.4e",
             )
 
+            percentiles_out = np.arange(1, 100)  # Percentili da 1 a 99
+            B = np.percentile(samples[:, n_SQ:], percentiles_out, axis=0)
+
+            csv_name = output_dir + "/" + elicitation_name + "_pc1-99.csv"
+            np.savetxt(
+                csv_name,
+                B,
+                header=",".join(targets),
+                comments="",
+                delimiter=",",
+                fmt="%1.4e",
+            )
+
         if ERF_flag > 0:
 
             df_tree["ERF_5"] = q_erf[n_SQ:, 0]
@@ -1710,12 +1723,39 @@ def run_elicitation(argv):
                 fmt="%1.4e",
             )
 
+            percentiles_out = np.arange(1, 100)  # Percentili da 1 a 99
+            B = np.percentile(samples_erf[:, n_SQ:], percentiles_out, axis=0)
+
+            csv_name = output_dir + "/" + elicitation_name + "_pc1-99_erf.csv"
+
+            np.savetxt(
+                csv_name,
+                B,
+                header=",".join(targets),
+                comments="",
+                delimiter=",",
+                fmt="%1.4e",
+            )
+
         if EW_flag > 0:
 
             csv_name = output_dir + "/" + elicitation_name + "_samples_EW.csv"
             np.savetxt(
                 csv_name,
                 samples_EW[:, n_SQ:],
+                header=",".join(targets),
+                comments="",
+                delimiter=",",
+                fmt="%1.4e",
+            )
+
+            percentiles_out = np.arange(1, 100)  # Percentili da 1 a 99
+            B = np.percentile(samples_EW[:, n_SQ:], percentiles_out, axis=0)
+
+            csv_name = output_dir + "/" + elicitation_name + "_pc1-99_EW.csv"
+            np.savetxt(
+                csv_name,
+                B,
                 header=",".join(targets),
                 comments="",
                 delimiter=",",
@@ -2455,7 +2495,7 @@ def run_elicitation(argv):
             text_box = "Intervals show mean and standard error of the index."
             fontsize = 13
 
-            add_text_box(slide, left, top+Inches(6.0), text_box, fontsize)
+            add_text_box(slide, left, top + Inches(6.0), text_box, fontsize)
 
     # ----------- Trend groups slides --------#
 
