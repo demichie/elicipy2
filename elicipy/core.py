@@ -29,6 +29,9 @@ from elicipy.tools import printProgressBar
 # from krippendorff_alpha import calculate_alpha
 from elicipy.computeIndex import calculate_index
 
+import logging
+logging.getLogger('matplotlib.font_manager').setLevel(logging.ERROR)
+
 max_len_table = 21
 max_len_tableB = 18
 
