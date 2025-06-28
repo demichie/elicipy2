@@ -37,6 +37,39 @@ max_len_tableB = 18
 
 max_len_plot = 21
 
+# In core.py, add this function near the top
+
+def save_index_results(output_dir, elicitation_name, method_name, tq_labels, mean_vals, std_vals, quantile_vals):
+    """
+    Saves the results of the agreement index calculation to a CSV file.
+    
+    Parameters:
+    - output_dir: The directory to save the file in.
+    - elicitation_name: The base name for the output file.
+    - method_name: The weighting scheme name (e.g., 'EW', 'Cooke').
+    - tq_labels: The list of target question labels.
+    - mean_vals, std_vals, quantile_vals: The data returned by calculate_index.
+    """
+    import pandas as pd
+    import os
+
+    # Structure the data into a dictionary
+    data_to_save = {
+        'Question_Label': tq_labels,
+        'Index_Mean': mean_vals,
+        'Index_Std': std_vals,
+        'Index_Q05': quantile_vals[:, 0],
+        'Index_Q50': quantile_vals[:, 1],
+        'Index_Q95': quantile_vals[:, 2]
+    }
+    
+    # Create the DataFrame
+    df = pd.DataFrame(data_to_save)
+    
+    # Construct the filename and save the CSV
+    filename = os.path.join(output_dir, f"{elicitation_name}_index_{method_name}.csv")
+    df.to_csv(filename, index=False)
+    print(f"       Saved agreement index results to {filename}")
 
 def add_date(slide):
 
@@ -1783,11 +1816,15 @@ def run_elicitation(argv):
 
         indexMean_EW, indexStd_EW, indexQuantiles_EW = calculate_index(
             TQ_array, Weqok, TQ_scale)
+        save_index_results(output_dir, elicitation_name, "EW", TQ_question, 
+                           indexMean_EW, indexStd_EW, indexQuantiles_EW)
 
         if Cooke_flag != 0:
 
             indexMean_Cooke, indexStd_Cooke, indexQuantiles_Cooke = \
                 calculate_index(TQ_array, W_gt0, TQ_scale)
+            save_index_results(output_dir, elicitation_name, "Cooke", TQ_question, 
+                               indexMean_Cooke, indexStd_Cooke, indexQuantiles_Cooke)
 
         else:
 
@@ -1799,6 +1836,8 @@ def run_elicitation(argv):
 
             indexMean_erf, indexStd_erf, indexQuantiles_erf = calculate_index(
                 TQ_array, Werf_gt0, TQ_scale)
+            save_index_results(output_dir, elicitation_name, "ERF", TQ_question, 
+                               indexMean_erf, indexStd_erf, indexQuantiles_erf)
 
         else:
 
