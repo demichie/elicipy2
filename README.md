@@ -42,6 +42,7 @@ This will install elicipy and the two main executables:
 
 1. elicipy-form (for the collection of answers with a webform).
 1. elicipy (for the analysis of the answers).
+1. elicipy-dashboard (after the analysis, for the the interactive visualization of the results). 
 
 ___
 
