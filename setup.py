@@ -17,12 +17,14 @@ setup(
         "bcrypt",
         "streamlit-authenticator",
         "python-pptx",
-        "pygithub"
+        "pygithub",
+        "plotly"
     ],
     entry_points={
         "console_scripts": [
             "elicipy=elicipy.cli:main",
-            "elicipy-form=elicipy.app:run_streamlit"
+            "elicipy-form=elicipy.app:run_streamlit",
+            "elicipy-dashboard=elicipy.app2:run_streamlit"
         ]
     },
     author="Mattia de' Michieli Vitturi",
