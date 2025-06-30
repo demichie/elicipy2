@@ -168,95 +168,56 @@ def run():
             "📊 Pie Charts"
         ])
 
-    # ... (All tab logic from the previous correct version goes here, unchanged) ...
     with tab_dist:
         st.header("Explore Aggregated Distributions")
         col1, col2 = st.columns([1, 2])
         with col1:
             st.markdown("#### Controls")
             tq_display_labels = data["tq_df"]["display_label"].tolist()
-            selected_display_label = st.selectbox("Select a Target Question",
-                                                  tq_display_labels,
-                                                  key="dist_select")
+            selected_display_label = st.selectbox("Select a Target Question", tq_display_labels, key="dist_select")
             tq_index = tq_display_labels.index(selected_display_label)
             selected_tq_label = data["tq_df"].iloc[tq_index]["SHORT Q"]
             q_scale = data["tq_df"].iloc[tq_index]['SCALE']
             xaxis_type = 'log' if q_scale == 'log' else 'linear'
-            methods_to_plot = st.multiselect("Select Methods",
-                                             available_methods,
-                                             default=available_methods,
-                                             key="dist_multi")
+            methods_to_plot = st.multiselect("Select Methods", available_methods, default=available_methods, key="dist_multi")
+            
+            st.markdown("---")
+            st.markdown("#### Plot Options")
+            n_bins = st.slider("Number of bins for histogram:", min_value=10, max_value=200, value=50, step=10)
+            
+            st.markdown("---")
             st.markdown("#### Summary Statistics")
-            summary_data, prog_col_name = [], get_prog_col_name(
-                tq_index, sample_data_ref)
+            summary_data, prog_col_name = [], get_prog_col_name(tq_index, sample_data_ref)
             if prog_col_name:
                 for method in methods_to_plot:
-                    pc99_df, samples_df = data.get(
-                        f"pc99_{method.lower()}"), data.get(
-                            f"samples_{method.lower()}")
+                    pc99_df, samples_df = data.get(f"pc99_{method.lower()}"), data.get(f"samples_{method.lower()}")
                     if pc99_df is not None:
-                        p05, p50, p95 = pc99_df[prog_col_name].iloc[
-                            4], pc99_df[prog_col_name].iloc[49], pc99_df[
-                                prog_col_name].iloc[94]
-                        mean = samples_df[prog_col_name].mean(
-                        ) if samples_df is not None else "N/A"
-                        summary_data.extend([[f"{method} P05", p05],
-                                             [f"{method} P50", p50],
-                                             [f"{method} P95", p95],
-                                             [f"{method} Mean", mean]])
-                st.dataframe(
-                    pd.DataFrame(summary_data, columns=["Statistic", "Value"]))
+                        p05, p50, p95 = pc99_df[prog_col_name].iloc[4], pc99_df[prog_col_name].iloc[49], pc99_df[prog_col_name].iloc[94]
+                        mean = samples_df[prog_col_name].mean() if samples_df is not None else "N/A"
+                        summary_data.extend([[f"{method} P05", p05], [f"{method} P50", p50], [f"{method} P95", p95], [f"{method} Mean", mean]])
+                st.dataframe(pd.DataFrame(summary_data, columns=["Statistic", "Value"]))
         with col2:
-            st.subheader("CDF and Histogram")
+            st.subheader("Cumulative Distribution Function (CDF)")
             fig_cdf = go.Figure()
             if prog_col_name:
                 for method in methods_to_plot:
                     df_pc99 = data.get(f"pc99_{method.lower()}")
                     if df_pc99 is not None and prog_col_name in df_pc99.columns:
-                        fig_cdf.add_trace(
-                            go.Scatter(
-                                x=df_pc99[prog_col_name],
-                                y=df_pc99.index + 1,
-                                mode='lines',
-                                name=f"{method} CDF",
-                                hovertemplate=
-                                "Value: %{x:.3f}<br>Percentile: %{y}<extra></extra>"
-                            ))
-            fig_cdf.update_layout(
-                title_text=f"CDF for: {selected_display_label}",
-                xaxis_title="Value",
-                yaxis_title="Cumulative %",
-                hovermode="x unified",
-                legend=dict(orientation="h",
-                            yanchor="bottom",
-                            y=1.02,
-                            xanchor="right",
-                            x=1))
+                        fig_cdf.add_trace(go.Scatter(x=df_pc99[prog_col_name], y=df_pc99.index + 1, mode='lines', name=f"{method} CDF", hovertemplate="Value: %{x:.3f}<br>Percentile: %{y}<extra></extra>"))
+            fig_cdf.update_layout(title_text=f"CDF for: {selected_display_label}", xaxis_title="Value", yaxis_title="Cumulative %", hovermode="x unified", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
             fig_cdf.update_xaxes(type=xaxis_type)
             st.plotly_chart(fig_cdf, use_container_width=True)
+            
+            st.subheader("Probability Density Histogram")
             if sample_data_ref is not None:
-                hist_data_list = [
-                    pd.DataFrame({
-                        'Value':
-                        data.get(f"samples_{m.lower()}")[prog_col_name],
-                        'Method':
-                        m
-                    }) for m in methods_to_plot
-                    if data.get(f"samples_{m.lower()}") is not None and
-                    prog_col_name in data.get(f"samples_{m.lower()}").columns
-                ]
+                hist_data_list = [pd.DataFrame({'Value': data.get(f"samples_{m.lower()}")[prog_col_name], 'Method': m}) for m in methods_to_plot if data.get(f"samples_{m.lower()}") is not None and prog_col_name in data.get(f"samples_{m.lower()}").columns]
                 if hist_data_list:
                     hist_df = pd.concat(hist_data_list)
-                    fig_hist = px.histogram(
-                        hist_df,
-                        x="Value",
-                        color="Method",
-                        barmode="overlay",
-                        histnorm='probability density',
-                        log_x=(xaxis_type == 'log'),
-                        title=f"Histogram for: {selected_display_label}")
-                    fig_hist.update_traces(opacity=0.6)
+                    fig_hist = px.histogram(hist_df, x="Value", color="Method", barmode="overlay", histnorm='probability density', log_x=(xaxis_type == 'log'), nbins=n_bins, title=f"Histogram for: {selected_display_label}")
+                    fig_hist.update_traces(opacity=0.4)
                     st.plotly_chart(fig_hist, use_container_width=True)
+            else:
+                st.warning("Full sample files (`_samples.csv`) are required for histograms.")
 
     with tab_weights:
         st.header("Expert Weights and Performance Metrics")
