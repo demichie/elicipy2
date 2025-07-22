@@ -367,47 +367,60 @@ def run():
         if weights_df is not None:
             display_df = weights_df.copy()
 
-            # Se disponibili, unisci gli score dettagliati di Cooke
             if cooke_scores_df is not None:
-                # Seleziona solo le colonne necessarie per evitare duplicati
                 score_cols = [
-                    'Expert', 'Calibration_Score', 'Information_Score',
-                    'unNormalized weight'
+                    col for col in [
+                        'Expert', 'Calibration_Score', 'Information_Score',
+                        'unNormalized weight'
+                    ] if col in cooke_scores_df.columns
                 ]
                 display_df = pd.merge(display_df,
                                       cooke_scores_df[score_cols],
                                       on="Expert",
                                       how="left")
 
-            # Riordina le colonne per una migliore leggibilità
+            # --- MODIFIED LOGIC ---
+            # 1. Rename columns to include units
+            rename_map = {
+                'WCooke': 'WCooke [%]',
+                'WERF': 'WERF [%]',
+                'Weq': 'Weq [%]'
+            }
+            display_df.rename(columns=rename_map, inplace=True)
+
+            # 2. Keep data as numbers, prepare for formatting
             col_order = [
                 'Expert', 'Calibration_Score', 'Information_Score',
-                'unNormalized weight', 'WCooke', 'WERF', 'Weq'
+                'unNormalized weight', 'WCooke [%]', 'WERF [%]', 'Weq [%]'
             ]
-            # Filtra per le colonne effettivamente presenti
             final_cols = [
                 col for col in col_order if col in display_df.columns
             ]
             display_df = display_df[final_cols]
 
-            # Formattazione
-            format_dict = {
-                'Calibration_Score': '{:.4f}',
-                'Information_Score': '{:.4f}',
-                'unNormalized weight': '{:.4f}'
-            }
-            for col in ['WCooke', 'WERF', 'Weq']:
-                if col in display_df.columns:
-                    display_df[col] = display_df[col].map('{:.2f}%'.format)
-
             if 'Expert' in display_df.columns:
                 display_df = display_df.set_index('Expert')
 
+            # 3. Apply formatting during display with st.dataframe
+            format_dict = {
+                'Calibration_Score': '{:.4f}',
+                'Information_Score': '{:.4f}',
+                'unNormalized weight': '{:.4f}',
+                # Format the number, but the header has the '%'
+                'WCooke [%]': '{:.2f}',
+                'WERF [%]': '{:.2f}',
+                'Weq [%]': '{:.2f}'
+            }
+            st.info("Click on column headers to sort the table.")
             st.dataframe(display_df.style.format(format_dict, na_rep='-'))
 
+            # The bar chart logic remains the same, using the original weights_df
             st.subheader("Visual Comparison of Final Weights")
-            plot_df, id_vars, value_vars = weights_df.copy(), ['Expert'], [
-                c for c in ['WCooke', 'WERF', 'Weq'] if c in weights_df.columns
+            plot_df = weights_df.copy()
+            id_vars = ['Expert']
+            value_vars = [
+                col for col in ['WCooke', 'WERF', 'Weq']
+                if col in plot_df.columns
             ]
             if id_vars[0] in plot_df.columns and value_vars:
                 melted_df = plot_df.melt(id_vars=id_vars,
