@@ -36,6 +36,7 @@ def load_all_data(elicitation_path):
         "index_cooke":
         (output_dir / f"{elicitation_name}_index_Cooke.csv", False),
         "index_erf": (output_dir / f"{elicitation_name}_index_ERF.csv", False),
+        "val_range": (output_dir / f"{elicitation_name}_valrange.csv", False),
     }
 
     for key, (path, is_required) in files_to_load.items():
@@ -67,6 +68,16 @@ def load_all_data(elicitation_path):
             drop=True)
         data['all_q_df'] = pd.concat([data["sq_df"], data["tq_df"]],
                                      ignore_index=True)
+
+        if data.get("val_range") is not None and data.get("tq_df") is not None:
+            # We need to find the target question portion of the val_range file
+            num_seed_questions = len(data["sq_df"])
+            tq_ranges = data["val_range"].iloc[
+                num_seed_questions:].reset_index(drop=True)
+            data["tq_df"] = pd.concat([
+                data["tq_df"], tq_ranges[['Calculated_Min', 'Calculated_Max']]
+            ],
+                                      axis=1)
 
         data['pie_groups'] = {}
         sum_groups = data['tq_df'][data['tq_df']['IDXMIN'] > 0].copy()
@@ -168,56 +179,176 @@ def run():
             "📊 Pie Charts"
         ])
 
+    # --- Tab: Distributions (con binning manuale e robusto per l'istogramma) ---
     with tab_dist:
         st.header("Explore Aggregated Distributions")
         col1, col2 = st.columns([1, 2])
         with col1:
             st.markdown("#### Controls")
             tq_display_labels = data["tq_df"]["display_label"].tolist()
-            selected_display_label = st.selectbox("Select a Target Question", tq_display_labels, key="dist_select")
+            selected_display_label = st.selectbox("Select a Target Question",
+                                                  tq_display_labels,
+                                                  key="dist_select")
             tq_index = tq_display_labels.index(selected_display_label)
             selected_tq_label = data["tq_df"].iloc[tq_index]["SHORT Q"]
             q_scale = data["tq_df"].iloc[tq_index]['SCALE']
             xaxis_type = 'log' if q_scale == 'log' else 'linear'
-            methods_to_plot = st.multiselect("Select Methods", available_methods, default=available_methods, key="dist_multi")
-            
+            methods_to_plot = st.multiselect("Select Methods",
+                                             available_methods,
+                                             default=available_methods,
+                                             key="dist_multi")
+
             st.markdown("---")
             st.markdown("#### Plot Options")
-            n_bins = st.slider("Number of bins for histogram:", min_value=10, max_value=200, value=50, step=10)
-            
+            n_bins = st.slider(
+                "Number of bins for histogram:",
+                min_value=10,
+                max_value=100,  # Ridotto per performance
+                value=40,
+                step=5)
+
             st.markdown("---")
             st.markdown("#### Summary Statistics")
-            summary_data, prog_col_name = [], get_prog_col_name(tq_index, sample_data_ref)
+            summary_data, prog_col_name = [], get_prog_col_name(
+                tq_index, sample_data_ref)
             if prog_col_name:
                 for method in methods_to_plot:
-                    pc99_df, samples_df = data.get(f"pc99_{method.lower()}"), data.get(f"samples_{method.lower()}")
+                    pc99_df, samples_df = data.get(
+                        f"pc99_{method.lower()}"), data.get(
+                            f"samples_{method.lower()}")
                     if pc99_df is not None:
-                        p05, p50, p95 = pc99_df[prog_col_name].iloc[4], pc99_df[prog_col_name].iloc[49], pc99_df[prog_col_name].iloc[94]
-                        mean = samples_df[prog_col_name].mean() if samples_df is not None else "N/A"
-                        summary_data.extend([[f"{method} P05", p05], [f"{method} P50", p50], [f"{method} P95", p95], [f"{method} Mean", mean]])
-                st.dataframe(pd.DataFrame(summary_data, columns=["Statistic", "Value"]))
+                        p05, p50, p95 = pc99_df[prog_col_name].iloc[
+                            4], pc99_df[prog_col_name].iloc[49], pc99_df[
+                                prog_col_name].iloc[94]
+                        mean = samples_df[prog_col_name].mean(
+                        ) if samples_df is not None else "N/A"
+                        summary_data.extend([[f"{method} P05", p05],
+                                             [f"{method} P50", p50],
+                                             [f"{method} P95", p95],
+                                             [f"{method} Mean", mean]])
+                st.dataframe(
+                    pd.DataFrame(summary_data, columns=["Statistic", "Value"]))
+
         with col2:
             st.subheader("Cumulative Distribution Function (CDF)")
             fig_cdf = go.Figure()
             if prog_col_name:
+                # Mappa di colori consistente
+                color_map = {
+                    "Cooke": "firebrick",
+                    "EW": "forestgreen",
+                    "ERF": "royalblue"
+                }
                 for method in methods_to_plot:
                     df_pc99 = data.get(f"pc99_{method.lower()}")
                     if df_pc99 is not None and prog_col_name in df_pc99.columns:
-                        fig_cdf.add_trace(go.Scatter(x=df_pc99[prog_col_name], y=df_pc99.index + 1, mode='lines', name=f"{method} CDF", hovertemplate="Value: %{x:.3f}<br>Percentile: %{y}<extra></extra>"))
-            fig_cdf.update_layout(title_text=f"CDF for: {selected_display_label}", xaxis_title="Value", yaxis_title="Cumulative %", hovermode="x unified", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+                        fig_cdf.add_trace(
+                            go.Scatter(
+                                x=df_pc99[prog_col_name],
+                                y=df_pc99.index + 1,
+                                mode='lines',
+                                name=f"{method} CDF",
+                                line=dict(color=color_map.get(method)),
+                                hovertemplate=
+                                "Value: %{x:.3f}<br>Percentile: %{y}<extra></extra>"
+                            ))
+            fig_cdf.update_layout(
+                title_text=f"CDF for: {selected_display_label}",
+                xaxis_title="Value",
+                yaxis_title="Cumulative %",
+                hovermode="x unified",
+                legend=dict(orientation="h",
+                            yanchor="bottom",
+                            y=1.02,
+                            xanchor="right",
+                            x=1))
             fig_cdf.update_xaxes(type=xaxis_type)
             st.plotly_chart(fig_cdf, use_container_width=True)
-            
-            st.subheader("Probability Density Histogram")
+
+            st.subheader("Probability Histogram")
             if sample_data_ref is not None:
-                hist_data_list = [pd.DataFrame({'Value': data.get(f"samples_{m.lower()}")[prog_col_name], 'Method': m}) for m in methods_to_plot if data.get(f"samples_{m.lower()}") is not None and prog_col_name in data.get(f"samples_{m.lower()}").columns]
+                hist_data_list = [
+                    pd.DataFrame({
+                        'Value':
+                        data.get(f"samples_{m.lower()}")[prog_col_name],
+                        'Method':
+                        m
+                    }) for m in methods_to_plot
+                    if data.get(f"samples_{m.lower()}") is not None and
+                    prog_col_name in data.get(f"samples_{m.lower()}").columns
+                ]
                 if hist_data_list:
                     hist_df = pd.concat(hist_data_list)
-                    fig_hist = px.histogram(hist_df, x="Value", color="Method", barmode="overlay", histnorm='probability density', log_x=(xaxis_type == 'log'), nbins=n_bins, title=f"Histogram for: {selected_display_label}")
-                    fig_hist.update_traces(opacity=0.4)
-                    st.plotly_chart(fig_hist, use_container_width=True)
+                    plot_df = hist_df.copy()
+
+                    if xaxis_type == 'log':
+                        non_positive_count = plot_df[plot_df['Value'] <=
+                                                     0].shape[0]
+                        if non_positive_count > 0:
+                            plot_df = plot_df[plot_df['Value'] > 0]
+                            st.info(
+                                f"ℹ️ Note: {non_positive_count} non-positive values were excluded from the logarithmic histogram."
+                            )
+
+                    if not plot_df.empty:
+                        # --- NUOVA LOGICA: Binning manuale con pd.cut ---
+                        min_val, max_val = plot_df['Value'].min(
+                        ), plot_df['Value'].max()
+
+                        if xaxis_type == 'log':
+                            bin_edges = np.geomspace(min_val, max_val,
+                                                     n_bins + 1)
+                        else:
+                            bin_edges = np.linspace(min_val, max_val,
+                                                    n_bins + 1)
+
+                        # Crea etichette pulite per i bin
+                        def format_bin_label(val):
+                            return f'{val:.2g}' if abs(val) > 1e-2 and abs(
+                                val) < 1e4 else f'{val:.2e}'
+
+                        bin_labels = [
+                            f"[{format_bin_label(bin_edges[i])}, {format_bin_label(bin_edges[i+1])})"
+                            for i in range(n_bins)
+                        ]
+
+                        # Usa pd.cut per creare la colonna categoriale dei bin
+                        plot_df['Bin'] = pd.cut(plot_df['Value'],
+                                                bins=bin_edges,
+                                                labels=bin_labels,
+                                                right=False,
+                                                include_lowest=True)
+
+                        # Pre-aggrega i dati: calcola la probabilità per ogni bin e metodo
+                        counts = plot_df.groupby(
+                            ['Method', 'Bin']).size().reset_index(name='Count')
+                        total_counts = counts.groupby(
+                            'Method')['Count'].transform('sum')
+                        counts['Probability'] = counts['Count'] / total_counts
+
+                        # Plotta i dati pre-binnati con px.bar
+                        fig_hist = px.bar(
+                            counts,
+                            x="Bin",
+                            y="Probability",
+                            color="Method",
+                            barmode="overlay",
+                            # Assicura l'ordine corretto
+                            category_orders={"Bin": bin_labels},
+                            color_discrete_map=color_map,
+                            title=f"Histogram for: {selected_display_label}")
+                        fig_hist.update_traces(opacity=0.6)
+                        fig_hist.update_layout(xaxis_title="Value Bins",
+                                               yaxis_title="Probability")
+                        st.plotly_chart(fig_hist, use_container_width=True)
+                    else:
+                        st.warning(
+                            "No data available to plot in the histogram after filtering."
+                        )
             else:
-                st.warning("Full sample files (`_samples.csv`) are required for histograms.")
+                st.warning(
+                    "Full sample files (`_samples.csv`) are required for histograms."
+                )
 
     with tab_weights:
         st.header("Expert Weights and Performance Metrics")
@@ -365,70 +496,85 @@ def run():
             options = all_display_labels
             if st.session_state.violin_selection:
                 try:
-                    first_info = tq_df[
+                    first_selected_info = tq_df[
                         tq_df["display_label"] ==
                         st.session_state.violin_selection[0]].iloc[0]
-                    mask = (tq_df['UNITS'] == first_info['UNITS']) & (
-                        tq_df['SCALE'] == first_info['SCALE'])
-                    options = tq_df[mask]["display_label"].tolist()
+                    compatible_mask = (
+                        tq_df['UNITS'] == first_selected_info['UNITS']) & (
+                            tq_df['SCALE'] == first_selected_info['SCALE'])
+                    options = tq_df[compatible_mask]["display_label"].tolist()
                 except IndexError:
                     options = all_display_labels
             st.session_state.violin_selection = [
-                s for s in st.session_state.violin_selection if s in options
+                sel for sel in st.session_state.violin_selection
+                if sel in options
             ]
             if st.button("Clear Violin Selections"):
                 st.session_state.violin_selection = []
                 st.rerun()
-            selected_labels = st.multiselect("Select questions:",
-                                             options=options,
-                                             key="violin_selection")
-            if selected_labels:
-                indices = [
-                    all_display_labels.index(l) for l in selected_labels
+            selected_display_labels = st.multiselect(
+                "Select questions to compare:",
+                options=options,
+                key="violin_selection")
+
+            if selected_display_labels:
+                tq_indices = [
+                    all_display_labels.index(label)
+                    for label in selected_display_labels
                 ]
-                info = tq_df.iloc[indices[0]]
-                y_type = 'log' if info['SCALE'] == 'log' else 'linear'
-                cols, names = [
-                    get_prog_col_name(i, sample_data_ref) for i in indices
-                ], [tq_df["SHORT Q"].iloc[i] for i in indices]
+                anchor_question_info = tq_df.iloc[tq_indices[0]]
+                yaxis_type_violin = 'log' if anchor_question_info[
+                    'SCALE'] == 'log' else 'linear'
+
+                # <-- CHANGED: Use the pre-calculated range from valrange.csv
+                min_val, max_val = anchor_question_info.get(
+                    'Calculated_Min'), anchor_question_info.get(
+                        'Calculated_Max')
+                y_range = [
+                    min_val if pd.notna(min_val) else None,
+                    max_val if pd.notna(max_val) else None
+                ]
+
+                cols_to_plot, descriptive_names = [
+                    get_prog_col_name(i, sample_data_ref) for i in tq_indices
+                ], [tq_df["SHORT Q"].iloc[i] for i in tq_indices]
                 methods = st.multiselect("Select Methods",
                                          available_methods,
                                          default=available_methods,
-                                         key="violin_multi")
-                samples = [
+                                         key="violin_multi_select")
+                all_samples = [
                     df for m in methods
-                    if (s_df := data.get(f"samples_{m.lower()}")) is not None
+                    if (df_samples := data.get(f"samples_{m.lower()}")
+                        ) is not None
                     for df in [
-                        pd.melt(s_df[[
-                            c for c in cols if c in s_df.columns
+                        pd.melt(df_samples[[
+                            c for c in cols_to_plot if c in df_samples.columns
                         ]].rename(columns=dict(
-                            zip([c for c in cols
-                                 if c in s_df.columns], names[:len(
-                                     [c for c in cols
-                                      if c in s_df.columns])]))),
+                            zip([
+                                c for c in cols_to_plot
+                                if c in df_samples.columns
+                            ], descriptive_names[:len([
+                                c for c in cols_to_plot
+                                if c in df_samples.columns
+                            ])]))),
                                 var_name="Question",
                                 value_name="Value").assign(Method=m)
                     ]
                 ]
-                if samples:
-                    df = pd.concat(samples)
-                    min_v, max_v = df['Value'].min(), df['Value'].max()
-                    y_range = [
-                        np.log10(df['Value'][df['Value'] > 0].min())
-                        if y_type == 'log'
-                        and df['Value'][df['Value'] > 0].any() else min_v,
-                        np.log10(max_v) if y_type == 'log' else max_v
-                    ]
-                    fig = px.violin(df,
+
+                if all_samples:
+                    fig = px.violin(pd.concat(all_samples),
                                     x="Question",
                                     y="Value",
                                     color="Method",
                                     box=True,
-                                    points=False)
-                    fig.update_yaxes(type=y_type, range=y_range)
+                                    points=False,
+                                    title="Distribution Comparison")
+                    fig.update_yaxes(type=yaxis_type_violin, range=y_range)
                     st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("Sample files are required.")
+            st.warning(
+                "Sample files (`_samples.csv`) are required for Violin Plots.")
 
     with tab_trend:
         st.header("Trend Plots for Selected Questions")

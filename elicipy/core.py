@@ -29,9 +29,6 @@ from elicipy.tools import printProgressBar
 # from krippendorff_alpha import calculate_alpha
 from elicipy.computeIndex import calculate_index
 
-import logging
-logging.getLogger('matplotlib.font_manager').setLevel(logging.ERROR)
-
 max_len_table = 21
 max_len_tableB = 18
 
@@ -69,7 +66,7 @@ def save_index_results(output_dir, elicitation_name, method_name, tq_labels, mea
     # Construct the filename and save the CSV
     filename = os.path.join(output_dir, f"{elicitation_name}_index_{method_name}.csv")
     df.to_csv(filename, index=False)
-    print(f"       Saved agreement index results to {filename}")
+    print(f"       Saved agreement index results to {elicitation_name}_index_{method_name}.csv")
 
 def add_date(slide):
 
@@ -1506,6 +1503,29 @@ def run_elicitation(argv):
 
         if verbose:
             print(i, minval_all[i], maxval_all[i])
+
+
+    print("       Saving calculated value ranges to CSV")
+
+    question_labels = global_shortQuestion
+
+    # Crea un dizionario con i dati da salvare
+    data_to_save = {
+        'Question_Label': question_labels,
+        'Calculated_Min': minval_all,
+        'Calculated_Max': maxval_all
+    }
+
+    # Crea un DataFrame con pandas
+    df_ranges = pd.DataFrame(data_to_save)
+
+    # Costruisci il nome del file
+    csv_name = output_dir + "/" + elicitation_name + "_valrange.csv"
+
+    # Salva il DataFrame in un file CSV
+    df_ranges.to_csv(csv_name, index=False)
+
+    print("       Value ranges saved to " + elicitation_name + "_valrange.csv")
 
     q_Cooke = np.zeros((len(global_scale), 4))
     q_erf = np.zeros((len(global_scale), 4))
