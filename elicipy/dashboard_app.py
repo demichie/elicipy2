@@ -37,6 +37,8 @@ def load_all_data(elicitation_path):
         (output_dir / f"{elicitation_name}_index_Cooke.csv", False),
         "index_erf": (output_dir / f"{elicitation_name}_index_ERF.csv", False),
         "val_range": (output_dir / f"{elicitation_name}_valrange.csv", False),
+        "cooke_scores": (output_dir / f"{elicitation_name}_cooke_scores.csv",
+                         False),
     }
 
     for key, (path, is_required) in files_to_load.items():
@@ -118,9 +120,16 @@ def load_all_data(elicitation_path):
     data["index_results"] = combined_index_df
 
     if data.get("weights") is not None:
+        num_experts = len(data["weights"])
         data["weights"]["Expert"] = [
-            f"Expert {i+1}" for i in range(len(data["weights"]))
+            f"Expert {i+1}" for i in range(num_experts)
         ]
+    if data.get("cooke_scores") is not None:
+        num_experts = len(data["cooke_scores"])
+        data["cooke_scores"]["Expert"] = [
+            f"Expert {i+1}" for i in range(num_experts)
+        ]
+
     return data
 
 
@@ -172,11 +181,11 @@ def run():
     if sample_data_ref is None:
         sample_data_ref = data.get("samples_ew")
 
-    tab_weights, tab_expert, tab_dist, tab_violin, tab_trend, tab_index, tab_pie = st.tabs(
+    tab_weights, tab_expert, tab_dist, tab_expert_drilldown, tab_violin, tab_trend, tab_index, tab_pie = st.tabs(
         [
             "⚖️ Weights", "🧑‍⚖️ Expert Answers", "🎯 Distributions",
-            "🎻 Violin Plots", "📈 Trend Plots", "📉 Agreement Index",
-            "📊 Pie Charts"
+            "🧑‍🔬 Expert Drill-Down", "🎻 Violin Plots", "📈 Trend Plots",
+            "📉 Agreement Index", "📊 Pie Charts"
         ])
 
     # --- Tab: Distributions (con binning manuale e robusto per l'istogramma) ---
@@ -353,17 +362,50 @@ def run():
     with tab_weights:
         st.header("Expert Weights and Performance Metrics")
         weights_df = data.get("weights")
+        cooke_scores_df = data.get("cooke_scores")
+
         if weights_df is not None:
             display_df = weights_df.copy()
+
+            # Se disponibili, unisci gli score dettagliati di Cooke
+            if cooke_scores_df is not None:
+                # Seleziona solo le colonne necessarie per evitare duplicati
+                score_cols = [
+                    'Expert', 'Calibration_Score', 'Information_Score',
+                    'unNormalized weight'
+                ]
+                display_df = pd.merge(display_df,
+                                      cooke_scores_df[score_cols],
+                                      on="Expert",
+                                      how="left")
+
+            # Riordina le colonne per una migliore leggibilità
+            col_order = [
+                'Expert', 'Calibration_Score', 'Information_Score',
+                'unNormalized weight', 'WCooke', 'WERF', 'Weq'
+            ]
+            # Filtra per le colonne effettivamente presenti
+            final_cols = [
+                col for col in col_order if col in display_df.columns
+            ]
+            display_df = display_df[final_cols]
+
+            # Formattazione
+            format_dict = {
+                'Calibration_Score': '{:.4f}',
+                'Information_Score': '{:.4f}',
+                'unNormalized weight': '{:.4f}'
+            }
             for col in ['WCooke', 'WERF', 'Weq']:
                 if col in display_df.columns:
                     display_df[col] = display_df[col].map('{:.2f}%'.format)
+
             if 'Expert' in display_df.columns:
                 display_df = display_df.set_index('Expert')
-            if 'index' in display_df.columns:
-                display_df = display_df.drop(columns=['index'])
-            st.dataframe(display_df)
-            st.subheader("Visual Comparison of Expert Weights")
+
+            st.dataframe(display_df.style.format(format_dict, na_rep='-'))
+
+            st.subheader("Visual Comparison of Final Weights")
             plot_df, id_vars, value_vars = weights_df.copy(), ['Expert'], [
                 c for c in ['WCooke', 'WERF', 'Weq'] if c in weights_df.columns
             ]
@@ -486,6 +528,113 @@ def run():
                 st.warning(
                     f"Could not find data columns for '{selected_q_label}'.")
 
+    with tab_expert_drilldown:
+        st.header("Single Expert Answer Analysis")
+        weights_df = data.get("weights")
+        if weights_df is not None and 'Expert' in weights_df.columns:
+            expert_list = weights_df['Expert'].tolist()
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                selected_expert = st.selectbox("Select an Expert",
+                                               expert_list,
+                                               key="expert_drill_select")
+                st.markdown("---")
+                st.markdown("#### Comparison Options")
+                available_aggr = [
+                    f"{m} {p}" for m in available_methods
+                    for p in ["P05", "P50", "P95"]
+                ]
+                selected_aggr = st.multiselect(
+                    "Select DM percentiles to show:",
+                    options=available_aggr,
+                    default=[f"{m} P50" for m in available_methods])
+            with col2:
+                st.subheader(f"Answers for {selected_expert}")
+                expert_index = expert_list.index(selected_expert)
+                seed_answers, target_answers = data.get("raw_seed"), data.get(
+                    "raw_target")
+                expert_responses = []
+                if seed_answers is not None and expert_index < len(
+                        seed_answers):
+                    expert_row_seed = seed_answers.iloc[expert_index]
+                    for i, q_info in data["sq_df"].iterrows():
+                        prefix = f"{q_info['IDX']}."
+                        p05_col, p50_col, p95_col = next(
+                            (c for c in seed_answers.columns
+                             if c.startswith(prefix) and "5%ile" in c),
+                            None), next(
+                                (c for c in seed_answers.columns
+                                 if c.startswith(prefix) and "50%ile" in c),
+                                None), next((
+                                    c for c in seed_answers.columns
+                                    if c.startswith(prefix) and "95%ile" in c),
+                                            None)
+                        if all((p05_col, p50_col, p95_col)):
+                            expert_responses.append({
+                                "Question":
+                                q_info["display_label"],
+                                "Type":
+                                "Seed",
+                                "Expert P05":
+                                expert_row_seed[p05_col],
+                                "Expert P50":
+                                expert_row_seed[p50_col],
+                                "Expert P95":
+                                expert_row_seed[p95_col],
+                                "Realization":
+                                q_info['REALIZATION']
+                            })
+                if target_answers is not None and expert_index < len(
+                        target_answers):
+                    expert_row_target = target_answers.iloc[expert_index]
+                    for i, q_info in data["tq_df"].iterrows():
+                        prefix = f"{q_info['IDX']}."
+                        prog_col_name = get_prog_col_name(i, sample_data_ref)
+                        p05_col, p50_col, p95_col = next(
+                            (c for c in target_answers.columns
+                             if c.startswith(prefix) and "5%ile" in c),
+                            None), next(
+                                (c for c in target_answers.columns
+                                 if c.startswith(prefix) and "50%ile" in c),
+                                None), next((
+                                    c for c in target_answers.columns
+                                    if c.startswith(prefix) and "95%ile" in c),
+                                            None)
+                        if all((p05_col, p50_col, p95_col)):
+                            response_dict = {
+                                "Question": q_info["display_label"],
+                                "Type": "Target",
+                                "Expert P05": expert_row_target[p05_col],
+                                "Expert P50": expert_row_target[p50_col],
+                                "Expert P95": expert_row_target[p95_col],
+                                "Realization": None
+                            }
+                            for aggr in selected_aggr:
+                                method, pctl = aggr.split(' ')
+                                pc_map = {'P05': 4, 'P50': 49, 'P95': 94}
+                                pc_index = pc_map.get(pctl)
+                                pc99_df = data.get(f"pc99_{method.lower()}")
+                                if pc99_df is not None and prog_col_name in pc99_df.columns and pc_index is not None:
+                                    response_dict[aggr] = pc99_df[
+                                        prog_col_name].iloc[pc_index]
+                            expert_responses.append(response_dict)
+                if expert_responses:
+
+                    df_display = pd.DataFrame(expert_responses)
+
+                    if 'Question' in df_display.columns:
+                        df_display = df_display.set_index('Question')
+
+                    format_dict = {
+                        col: "{:,.2f}"
+                        for col in df_display.columns
+                        if df_display[col].dtype == 'float64'
+                    }
+                    st.dataframe(
+                        df_display.style.format(format_dict, na_rep='-'))
+        else:
+            st.warning("Weights file not found.")
+
     with tab_violin:
         st.header("Violin Plots for Selected Questions")
         if sample_data_ref is not None:
@@ -578,82 +727,115 @@ def run():
 
     with tab_trend:
         st.header("Trend Plots for Selected Questions")
-        tq_df, all_display_labels = data["tq_df"], data["tq_df"][
-            "display_label"].tolist()
+        tq_df = data["tq_df"]
+        all_display_labels = tq_df["display_label"].tolist()
+
         if 'trend_selection' not in st.session_state:
             st.session_state.trend_selection = all_display_labels[:5]
-        options = all_display_labels
+
+        options_trend = all_display_labels
         if st.session_state.trend_selection:
             try:
-                first_info = tq_df[tq_df["display_label"] ==
-                                   st.session_state.trend_selection[0]].iloc[0]
-                mask = (tq_df['UNITS'] == first_info['UNITS']) & (
-                    tq_df['SCALE'] == first_info['SCALE'])
-                options = tq_df[mask]["display_label"].tolist()
+                first_selected_info = tq_df[
+                    tq_df["display_label"] ==
+                    st.session_state.trend_selection[0]].iloc[0]
+                compatible_mask = (
+                    tq_df['UNITS'] == first_selected_info['UNITS']) & (
+                        tq_df['SCALE'] == first_selected_info['SCALE'])
+                options_trend = tq_df[compatible_mask]["display_label"].tolist(
+                )
             except IndexError:
-                options = all_display_labels
+                options_trend = all_display_labels
+
         st.session_state.trend_selection = [
-            s for s in st.session_state.trend_selection if s in options
+            sel for sel in st.session_state.trend_selection
+            if sel in options_trend
         ]
+
         if st.button("Clear Trend Selections"):
             st.session_state.trend_selection = []
             st.rerun()
-        selected_labels = st.multiselect("Select questions:",
-                                         options=options,
-                                         key="trend_selection")
-        if selected_labels:
-            indices = [all_display_labels.index(l) for l in selected_labels]
-            info, y_type = tq_df.iloc[indices[0]], 'log' if tq_df.iloc[
-                indices[0]]['SCALE'] == 'log' else 'linear'
-            all_p05, all_p95 = [], []
-            for m in available_methods:
-                if (pc99 := data.get(f"pc99_{m.lower()}")) is not None:
-                    prog_cols = [
-                        get_prog_col_name(i, sample_data_ref) for i in indices
-                    ]
-                    all_p05.extend(
-                        [pc99[c].iloc[4] for c in prog_cols if c in pc99])
-                    all_p95.extend(
-                        [pc99[c].iloc[94] for c in prog_cols if c in pc99])
+
+        selected_display_labels = st.multiselect(
+            "Select questions for Trend Plot:",
+            options=options_trend,
+            key="trend_selection")
+
+        if selected_display_labels:
+            tq_indices = [
+                all_display_labels.index(label)
+                for label in selected_display_labels
+            ]
+            anchor_question_info = tq_df.iloc[tq_indices[0]]
+            yaxis_type_trend = 'log' if anchor_question_info[
+                'SCALE'] == 'log' else 'linear'
+
+            # --- LOGICA MODIFICATA: Usa MINVAL e MAXVAL ---
+            min_val, max_val = anchor_question_info[
+                'MINVAL'], anchor_question_info['MAXVAL']
+
+            # Gestisce i casi in cui i limiti sono infiniti
             y_range = [
-                min(all_p05) if all_p05 else None,
-                max(all_p95) if all_p95 else None
+                min_val if np.isfinite(min_val) else None,
+                max_val if np.isfinite(max_val) else None
             ]
-            if y_type == 'log' and y_range[0] is not None and y_range[0] <= 0:
+            # Assicura che il limite inferiore sia valido per una scala logaritmica
+            if yaxis_type_trend == 'log' and y_range[
+                    0] is not None and y_range[0] <= 0:
+                # Lascia che Plotly scelga un minimo appropriato
                 y_range[0] = None
-            names, prog_cols = [tq_df["SHORT Q"].iloc[i] for i in indices], [
-                get_prog_col_name(i, sample_data_ref) for i in indices
+
+            descriptive_names = [tq_df["SHORT Q"].iloc[i] for i in tq_indices]
+            prog_col_names = [
+                get_prog_col_name(i, sample_data_ref) for i in tq_indices
             ]
-            fig = go.Figure()
-            offsets = np.linspace(
-                -0.2, 0.2,
-                len(available_methods)) if len(available_methods) > 1 else [0]
-            for i, m in enumerate(available_methods):
-                if (pc99 := data.get(f"pc99_{m.lower()}")) is not None:
-                    p50s, p05s, p95s = [
-                        pc99[c].iloc[49] for c in prog_cols if c in pc99
-                    ], [pc99[c].iloc[4] for c in prog_cols if c in pc99
-                        ], [pc99[c].iloc[94] for c in prog_cols if c in pc99]
+
+            fig_trend = go.Figure()
+            num_methods = len(available_methods)
+            offsets = np.linspace(-0.2, 0.2,
+                                  num_methods) if num_methods > 1 else [0]
+
+            for i, method in enumerate(available_methods):
+                pc99_df = data.get(f"pc99_{method.lower()}")
+                if pc99_df is not None:
+                    p50s = [
+                        pc99_df[c].iloc[49] for c in prog_col_names
+                        if c in pc99_df
+                    ]
+                    p05s = [
+                        pc99_df[c].iloc[4] for c in prog_col_names
+                        if c in pc99_df
+                    ]
+                    p95s = [
+                        pc99_df[c].iloc[94] for c in prog_col_names
+                        if c in pc99_df
+                    ]
                     if p50s:
-                        fig.add_trace(
-                            go.Scatter(
-                                x=[j + offsets[i] for j in range(len(names))],
-                                y=p50s,
-                                error_y=dict(type='data',
-                                             symmetric=False,
-                                             array=np.array(p95s) -
-                                             np.array(p50s),
-                                             arrayminus=np.array(p50s) -
-                                             np.array(p05s)),
-                                mode='markers',
-                                name=m))
-            fig.update_layout(yaxis_title=f"Value ({info['UNITS']})",
-                              yaxis_type=y_type,
-                              yaxis_range=y_range,
-                              xaxis=dict(tickmode='array',
-                                         tickvals=list(range(len(names))),
-                                         ticktext=names))
-            st.plotly_chart(fig, use_container_width=True)
+                        x_data = [
+                            j + offsets[i]
+                            for j in range(len(descriptive_names))
+                        ]
+                        fig_trend.add_trace(
+                            go.Scatter(x=x_data,
+                                       y=p50s,
+                                       error_y=dict(type='data',
+                                                    symmetric=False,
+                                                    array=np.array(p95s) -
+                                                    np.array(p50s),
+                                                    arrayminus=np.array(p50s) -
+                                                    np.array(p05s)),
+                                       mode='markers',
+                                       name=method))
+
+            fig_trend.update_layout(
+                title="Trend Plot for Selected Questions",
+                yaxis_title=f"Value ({anchor_question_info['UNITS']})",
+                yaxis_type=yaxis_type_trend,
+                yaxis_range=y_range,  # Applica l'intervallo corretto
+                xaxis=dict(tickmode='array',
+                           tickvals=list(range(len(descriptive_names))),
+                           ticktext=descriptive_names))
+            st.plotly_chart(fig_trend, use_container_width=True)
 
     with tab_index:
         st.header("Agreement Index Analysis")

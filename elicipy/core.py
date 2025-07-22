@@ -1595,6 +1595,21 @@ def run_elicitation(argv):
                 overshoot, cal_power, ERF_flag, Cooke_flag, seed, NS_experts,
                 weights_file)
 
+
+            print("       Saving Cooke's method scores to CSV")
+            # Assumiamo che NS_experts (la lista dei nomi degli esperti) sia disponibile
+            cooke_scores_df = pd.DataFrame({
+                'Expert_ID': range(1, n_experts + 1),
+                'Calibration_Score': W[:, 0], # La prima colonna di W è C[ex]
+                'Information_Score': W[:, 2],  # La terza colonna di W è I_real[ex]
+                'unNormalized weight': W[:, 3],
+                'Normalized weight': W[:, -1]
+            })
+            scores_csv_name = output_dir + "/" + elicitation_name + "_cooke_scores.csv"
+            cooke_scores_df.to_csv(scores_csv_name, index=False)
+            print("       Cooke's scores saved to" + elicitation_name + "_cooke_scores.csv")
+
+
             # ----------------------------------------- #
             # ------ Create samples and bar plots ----- #
             # ----------------------------------------- #
