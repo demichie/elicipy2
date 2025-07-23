@@ -697,6 +697,10 @@ def run():
                     max_val if pd.notna(max_val) else None
                 ]
 
+                if (yaxis_type_violin == 'log'):
+                    y_range[0] = np.log10(y_range[0])
+                    y_range[1] = np.log10(y_range[1])
+
                 cols_to_plot, descriptive_names = [
                     get_prog_col_name(i, sample_data_ref) for i in tq_indices
                 ], [tq_df["SHORT Q"].iloc[i] for i in tq_indices]
@@ -731,7 +735,8 @@ def run():
                                     color="Method",
                                     box=True,
                                     points=False,
-                                    title="Distribution Comparison")
+                                    title="Distribution Comparison",
+                                    range_y=y_range)
                     fig.update_yaxes(type=yaxis_type_violin, range=y_range)
                     st.plotly_chart(fig, use_container_width=True)
         else:
