@@ -655,93 +655,74 @@ def run():
             all_display_labels = tq_df["display_label"].tolist()
             if 'violin_selection' not in st.session_state:
                 st.session_state.violin_selection = all_display_labels[:3]
+            
             options = all_display_labels
             if st.session_state.violin_selection:
                 try:
-                    first_selected_info = tq_df[
-                        tq_df["display_label"] ==
-                        st.session_state.violin_selection[0]].iloc[0]
-                    compatible_mask = (
-                        tq_df['UNITS'] == first_selected_info['UNITS']) & (
-                            tq_df['SCALE'] == first_selected_info['SCALE'])
+                    first_selected_info = tq_df[tq_df["display_label"] == st.session_state.violin_selection[0]].iloc[0]
+                    compatible_mask = (tq_df['UNITS'] == first_selected_info['UNITS']) & (tq_df['SCALE'] == first_selected_info['SCALE'])
                     options = tq_df[compatible_mask]["display_label"].tolist()
                 except IndexError:
                     options = all_display_labels
-            st.session_state.violin_selection = [
-                sel for sel in st.session_state.violin_selection
-                if sel in options
-            ]
+            
+            st.session_state.violin_selection = [sel for sel in st.session_state.violin_selection if sel in options]
+            
             if st.button("Clear Violin Selections"):
                 st.session_state.violin_selection = []
                 st.rerun()
-            selected_display_labels = st.multiselect(
-                "Select questions to compare:",
-                options=options,
-                key="violin_selection")
 
+            selected_display_labels = st.multiselect("Select questions to compare:", options=options, key="violin_selection")
+            
             if selected_display_labels:
-                tq_indices = [
-                    all_display_labels.index(label)
-                    for label in selected_display_labels
-                ]
+                tq_indices = [all_display_labels.index(label) for label in selected_display_labels]
                 anchor_question_info = tq_df.iloc[tq_indices[0]]
-                yaxis_type_violin = 'log' if anchor_question_info[
-                    'SCALE'] == 'log' else 'linear'
-
-                # <-- CHANGED: Use the pre-calculated range from valrange.csv
-                min_val, max_val = anchor_question_info.get(
-                    'Calculated_Min'), anchor_question_info.get(
-                        'Calculated_Max')
-                y_range = [
-                    min_val if pd.notna(min_val) else None,
-                    max_val if pd.notna(max_val) else None
-                ]
-
-                if (yaxis_type_violin == 'log'):
-                    y_range[0] = np.log10(y_range[0])
-                    y_range[1] = np.log10(y_range[1])
-
-                cols_to_plot, descriptive_names = [
-                    get_prog_col_name(i, sample_data_ref) for i in tq_indices
-                ], [tq_df["SHORT Q"].iloc[i] for i in tq_indices]
-                methods = st.multiselect("Select Methods",
-                                         available_methods,
-                                         default=available_methods,
-                                         key="violin_multi_select")
-                all_samples = [
-                    df for m in methods
-                    if (df_samples := data.get(f"samples_{m.lower()}")
-                        ) is not None
-                    for df in [
-                        pd.melt(df_samples[[
-                            c for c in cols_to_plot if c in df_samples.columns
-                        ]].rename(columns=dict(
-                            zip([
-                                c for c in cols_to_plot
-                                if c in df_samples.columns
-                            ], descriptive_names[:len([
-                                c for c in cols_to_plot
-                                if c in df_samples.columns
-                            ])]))),
-                                var_name="Question",
-                                value_name="Value").assign(Method=m)
-                    ]
-                ]
-
+                scale_type = 'log' if anchor_question_info['SCALE'] == 'log' else 'linear'
+                
+                cols_to_plot = [get_prog_col_name(i, sample_data_ref) for i in tq_indices]
+                descriptive_names = [tq_df["SHORT Q"].iloc[i] for i in tq_indices]
+                
+                methods = st.multiselect("Select Methods", available_methods, default=available_methods, key="violin_multi_select")
+                
+                all_samples = []
+                for method in methods:
+                    df_samples = data.get(f"samples_{method.lower()}")
+                    if df_samples is not None:
+                        subset = df_samples[[col for col in cols_to_plot if col in df_samples.columns]]
+                        if not subset.empty:
+                            subset.columns = descriptive_names[:len(subset.columns)]
+                            melted = subset.melt(var_name="Question", value_name="Value").assign(Method=method)
+                            all_samples.append(melted)
+                
                 if all_samples:
-                    fig = px.violin(pd.concat(all_samples),
-                                    x="Question",
-                                    y="Value",
-                                    color="Method",
-                                    box=True,
-                                    points=False,
-                                    title="Distribution Comparison",
-                                    range_y=y_range)
-                    fig.update_yaxes(type=yaxis_type_violin, range=y_range)
+                    combined_df = pd.concat(all_samples)
+                    
+                    # --- LOGICA MODIFICATA: Trasformazione Log10 ---
+                    y_axis_title = f"Value ({anchor_question_info['UNITS']})"
+                    plot_column = 'Value'
+
+                    if scale_type == 'log':
+                        # Crea una nuova colonna con i valori in log10
+                        # np.log10(0 o negativo) produce -inf o nan, che verranno ignorati
+                        combined_df['Value_log10'] = np.log10(combined_df['Value'])
+                        plot_column = 'Value_log10'
+                        y_axis_title = f"Value ({anchor_question_info['UNITS']}) [log10 scale]"
+                    
+                    fig = px.violin(
+                        combined_df,
+                        x="Question",
+                        y=plot_column, # Usa la colonna appropriata
+                        color="Method",
+                        box=True,
+                        points=False,
+                        title="Distribution Comparison for Selected Questions"
+                    )
+                    
+                    # Aggiorna il titolo dell'asse y
+                    fig.update_layout(yaxis_title=y_axis_title)
+                    
                     st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning(
-                "Sample files (`_samples.csv`) are required for Violin Plots.")
+            st.warning("Sample files (`_samples.csv`) are required for Violin Plots.")
 
     with tab_trend:
         st.header("Trend Plots for Selected Questions")
