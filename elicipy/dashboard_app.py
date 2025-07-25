@@ -57,10 +57,13 @@ def load_all_data(elicitation_path):
                     errors='ignore')
 
         def format_label(row):
-            label, short_q = row.get('LABEL',
-                                     row.get('IDX',
-                                             '')), row.get('SHORT Q', '')
-            return f"[{label}] {short_q}"
+            q_type = row.get('QUEST_TYPE', 'unknown')
+            prefix = 'S' if q_type == 'seed' else 'T'
+            
+            label = row.get('LABEL', row.get('IDX', ''))
+            short_q = row.get('SHORT Q', '')
+            
+            return f"[{prefix}{label}] {short_q}"
 
         q_df["display_label"] = q_df.apply(format_label, axis=1)
 
@@ -244,9 +247,9 @@ def run():
             if prog_col_name:
                 # Mappa di colori consistente
                 color_map = {
-                    "Cooke": "firebrick",
-                    "EW": "forestgreen",
-                    "ERF": "royalblue"
+                    "Cooke": "#332288",
+                    "EW": "#88CCEE",
+                    "ERF": "#CC6677"
                 }
                 for method in methods_to_plot:
                     df_pc99 = data.get(f"pc99_{method.lower()}")
@@ -346,7 +349,8 @@ def run():
                             category_orders={"Bin": bin_labels},
                             color_discrete_map=color_map,
                             title=f"Histogram for: {selected_display_label}")
-                        fig_hist.update_traces(opacity=0.6)
+                        fig_hist.update_traces(opacity=0.9)
+                        fig_hist.update_traces(marker_line_width=1,marker_line_color="black")
                         fig_hist.update_layout(xaxis_title="Value Bins",
                                                yaxis_title="Probability")
                         st.plotly_chart(fig_hist, use_container_width=True)
@@ -483,9 +487,9 @@ def run():
                                                       sample_data_ref)
                     if prog_col_name:
                         dm_pos_counter = len(raw_df)
-                        for method, color in [("Cooke", "firebrick"),
-                                              ("EW", "forestgreen"),
-                                              ("ERF", "royalblue")]:
+                        for method, color in [("Cooke", "#332288"),
+                                              ("EW", "#88CCEE"),
+                                              ("ERF", "#CC6677")]:
                             pc99_df = data.get(f"pc99_{method.lower()}")
                             if pc99_df is not None:
                                 p50_dm, p05_dm, p95_dm = pc99_df[
