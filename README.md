@@ -273,8 +273,15 @@ Authors:
 * Augusto Neri.
 
 Some of the functions are based on the scripts of the Matlab package Anduril
-(authors:  Georgios Leontaris and Oswaldo Morales-Napoles). The development of
-the code was supported by the project PIANETA DINAMICO,
-Istituto Nazionale di Geofisica e Vulcanologia, Italy.
+(authors:  Georgios Leontaris and Oswaldo Morales-Napoles). 
 
+The development of ELICIPY was supported by the project “Pianeta Dinamico -
+Working Earth”– Theme: WUNDERVUL “Toward a Wider Understanding of Vulcano”,
+funded by the Italian Ministry of Education, University and Research, by the
+“Convenzione Attuativa per il potenziamento delle attività di servizio” 
+funded by the Italian Department of Civil Protection, and by the Project
+“Hazard and risk assessment for Kolumbo Volcano, Greece”, funded by the
+Hellenic Survey of Geology and Mineral Exploration (HSGME). The manuscript
+does not necessarily represent official views and policies of the Italian
+Department of Civil Protection.  
 
