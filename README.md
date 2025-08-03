@@ -281,7 +281,5 @@ funded by the Italian Ministry of Education, University and Research, by the
 “Convenzione Attuativa per il potenziamento delle attività di servizio” 
 funded by the Italian Department of Civil Protection, and by the Project
 “Hazard and risk assessment for Kolumbo Volcano, Greece”, funded by the
-Hellenic Survey of Geology and Mineral Exploration (HSGME). The manuscript
-does not necessarily represent official views and policies of the Italian
-Department of Civil Protection.  
+Hellenic Survey of Geology and Mineral Exploration (HSGME).
 
