@@ -7,6 +7,8 @@ from matplotlib.ticker import PercentFormatter
 
 from elicipy.tools import printProgressBar
 
+from scipy import stats
+
 plt.rcParams.update({"font.size": 8})
 
 rcParams["font.family"] = "sans-serif"
@@ -105,8 +107,6 @@ def create_fig_hist(
     none
 
     """
-
-    from scipy import stats
 
     if not os.path.exists(output_dir + "/" + "Barplots_PNGPDF"):
         os.makedirs(output_dir + "/" + "Barplots_PNGPDF")
@@ -1309,6 +1309,175 @@ def create_figure_answers(h, k, n_experts, max_len_plot, n_SQ, SQ_array,
     fig.savefig(figname, dpi=300)
     plt.close()
 
+
+def create_all_hist_figs_with_index(
+    # Argomenti per il ciclo
+    n_SQ, n_TQ,
+    # Dati generali
+    n_sample, hist_type, samples, samples_erf, samples_EW,
+    colors, legends, TQ_units, global_log,
+    # Dati per i range degli assi
+    minval_all, maxval_all, global_minVal, global_maxVal,
+    n_bins, label_indexes, Cooke_flag, ERF_flag, EW_flag,
+    # Dati per l'indice
+    indexMean_Cooke, indexStd_Cooke, indexMean_erf, indexStd_erf, indexMean_EW, indexStd_EW,
+    # Argomenti per l'output
+    output_dir, elicitation_name
+):
+    """
+    Crea e salva una figura composita per ogni domanda target.
+    """
+    new_output_folder = os.path.join(output_dir, "Histograms_with_Index_PNGPDF")
+    if not os.path.exists(new_output_folder):
+        os.makedirs(new_output_folder)
+        print(f"      Created new directory: {new_output_folder}")
+
+    print("       Creating combined histogram and index plots for all target questions")
+    for j in range(n_SQ, n_SQ + n_TQ):
+        printProgressBar(j - n_SQ, n_TQ - 1, prefix='      ', suffix='')
+
+        # Prepara i dati per l'istogramma
+        data_for_stack = []
+        active_legends = []
+        active_colors = []
+        if Cooke_flag > 0:
+            data_for_stack.append(samples[:, j])
+            active_legends.append("CM")
+            active_colors.append(colors[legends.index("CM")])
+        if ERF_flag > 0:
+            data_for_stack.append(samples_erf[:, j])
+            active_legends.append("ERF")
+            active_colors.append(colors[legends.index("ERF")])
+        if EW_flag > 0:
+            data_for_stack.append(samples_EW[:, j])
+            active_legends.append("EW")
+            active_colors.append(colors[legends.index("EW")])
+        
+        C_stack = np.stack(data_for_stack, axis=1)
+
+        fig = plt.figure(figsize=(10, 6))
+        gs = fig.add_gridspec(1, 2, width_ratios=(7, 1), wspace=0.2)
+        
+        # --- 1. Pannello Sinistro: Istogramma e PDF ---
+        ax1 = fig.add_subplot(gs[0, 0])
+        wg = np.ones_like(C_stack) / n_sample
+
+        if global_log[j] == 1:
+            bins = np.geomspace(minval_all[j], maxval_all[j], n_bins + 1)
+        else:
+            bins = np.linspace(minval_all[j], maxval_all[j], n_bins + 1)
+
+        ax1.hist(C_stack, bins=bins, weights=wg, histtype=hist_type, color=active_colors, label=active_legends, ec="k", rwidth=0.95 if hist_type=='step' else 0.5)
+
+        ax1.set_xlabel(TQ_units[j - n_SQ])
+        ax1.yaxis.set_major_formatter(PercentFormatter(1))
+        ax1.set_ylabel("Frequency")
+        ax1.legend()
+        
+        ax1_twin = ax1.twinx()
+
+        # --- REPLICA ESATTA DELLA LOGICA PDF ORIGINALE ---
+        if global_log[j] == 1:
+            pdf_min = np.log10(minval_all[j])
+            pdf_max = np.log10(maxval_all[j])
+            pdf_samples_cooke = np.log10(samples[:, j])
+            pdf_samples_erf = np.log10(samples_erf[:, j])
+            pdf_samples_ew = np.log10(samples_EW[:, j])
+            pdf_spc = np.linspace(pdf_min, pdf_max, 1000)
+            # Questo fattore di scala è specifico per la trasformazione logaritmica
+            pdf_scale = (pdf_max - pdf_min) / (maxval_all[j] - minval_all[j])
+            lnspc = 10**pdf_spc
+        else:
+            pdf_min = global_minVal[j]
+            if pdf_min == float("-inf"):
+                pdf_min = minval_all[j]
+            pdf_max = global_maxVal[j]
+            if pdf_max == float("inf"):
+                pdf_max = maxval_all[j]
+            pdf_samples_cooke = samples[:, j]
+            pdf_samples_erf = samples_erf[:, j]
+            pdf_samples_ew = samples_EW[:, j]
+            pdf_spc = np.linspace(pdf_min, pdf_max, 1000)
+            pdf_scale = 1.0
+            lnspc = pdf_spc
+
+        if Cooke_flag > 0:
+            gkde = stats.gaussian_kde(pdf_samples_cooke)
+            gkde_norm = gkde.integrate_box_1d(pdf_min, pdf_max)
+            kdepdf = gkde.evaluate(pdf_spc) / gkde_norm * pdf_scale
+            ax1_twin.plot(lnspc, kdepdf, "--", color="r")
+
+        if ERF_flag > 0:
+            gkde_erf = stats.gaussian_kde(pdf_samples_erf)
+            gkde_erf_norm = gkde_erf.integrate_box_1d(pdf_min, pdf_max)
+            kdepdf_erf = gkde_erf.evaluate(pdf_spc) / gkde_erf_norm * pdf_scale
+            ax1_twin.plot(lnspc, kdepdf_erf, "--", color="tab:purple")
+
+        if EW_flag > 0:
+            gkde_EW = stats.gaussian_kde(pdf_samples_ew)
+            gkde_EW_norm = gkde_EW.integrate_box_1d(pdf_min, pdf_max)
+            kdepdf_EW = gkde_EW.evaluate(pdf_spc) / gkde_EW_norm * pdf_scale
+            ax1_twin.plot(lnspc, kdepdf_EW, "--", color="g")
+        # --- FINE DELLA REPLICA ---
+
+        ax1_twin.set_ylabel("PDF", color='blue')
+        ax1_twin.tick_params(axis='y', labelcolor='blue')
+        ax1_twin.set_ylim(bottom=0)
+
+        # Applica limiti e scala
+        ax1.set_xlim(minval_all[j], maxval_all[j])
+        if global_log[j] == 1:
+            ax1.set_xscale("log")
+        
+        ax1.set_title(f"Target Question {label_indexes[j]}")
+        
+        # --- 2. Pannello Destro: Indice di Accordo ---
+        ax2 = fig.add_subplot(gs[0, 1])
+        
+        methods_present_index, means, stds, index_colors = [], [], [], []
+        if Cooke_flag > 0:
+            methods_present_index.append("CM")
+            means.append(indexMean_Cooke[j - n_SQ])
+            stds.append(indexStd_Cooke[j - n_SQ])
+            index_colors.append(active_colors[active_legends.index("CM")])
+        if ERF_flag > 0:
+            methods_present_index.append("ERF")
+            means.append(indexMean_erf[j - n_SQ])
+            stds.append(indexStd_erf[j - n_SQ])
+            index_colors.append(active_colors[active_legends.index("ERF")])
+        if EW_flag > 0:
+            methods_present_index.append("EW")
+            means.append(indexMean_EW[j - n_SQ])
+            stds.append(indexStd_EW[j - n_SQ])
+            index_colors.append(active_colors[active_legends.index("EW")])
+
+        x_pos = np.arange(len(methods_present_index))
+        
+        for i in range(len(methods_present_index)):
+            ax2.errorbar(x_pos[i], means[i], yerr=stds[i], fmt='o', color=index_colors[i],
+                         ecolor=index_colors[i], capsize=5, markersize=8,
+                         markeredgecolor='black', markeredgewidth=0.5)
+        
+        ax2.set_ylim(-1, 1)
+        ax2.set_ylabel("Agreement Index")
+        ax2.yaxis.set_label_position("right")
+        ax2.yaxis.tick_right()
+        ax2.axhline(0, color='grey', linestyle='--', linewidth=0.8)
+        ax2.set_xticks(x_pos)
+        ax2.set_xticklabels(methods_present_index, rotation=45, ha="right")
+        ax2.set_title("Agreement")
+        ax2.set_xlim(x_pos[0]-0.3, x_pos[-1]+0.3)
+        ax2.grid(axis='y', linestyle=':', linewidth=0.7)
+
+        # --- Salvataggio ---
+        # plt.tight_layout()
+        figname_base = os.path.join(new_output_folder, f"{elicitation_name}_combined_{str(j - n_SQ + 1).zfill(2)}")
+        
+        fig.savefig(figname_base + ".pdf")
+        fig.savefig(figname_base + ".png", dpi=300)
+        plt.close(fig)
+
+    return
 
 def create_barplot(group, n_SQ, n_TQ, n_sample, global_log, global_minVal,
                    global_maxVal, global_units, TQ_units, label_indexes,

@@ -23,6 +23,7 @@ from elicipy.createPlots import create_figure_trend
 from elicipy.createPlots import create_figure_answers
 from elicipy.createPlots import create_barplot
 from elicipy.createPlots import create_figure_index
+from elicipy.createPlots import create_all_hist_figs_with_index
 
 from elicipy.tools import printProgressBar
 
@@ -1911,6 +1912,19 @@ def run_elicitation(argv):
                 elicitation_name,
             )
 
+        create_all_hist_figs_with_index(n_SQ=n_SQ,n_TQ=n_TQ,n_sample=n_sample,
+            hist_type=hist_type,samples=samples,samples_erf=samples_erf,
+            samples_EW=samples_EW,colors=["tomato", "purple", "springgreen"],
+            legends=["CM", "ERF", "EW"],TQ_units=TQ_units,global_log=global_log,
+            minval_all=minval_all,maxval_all=maxval_all,
+            global_minVal=global_minVal, global_maxVal=global_maxVal,n_bins=n_bins,
+            label_indexes=label_indexes,Cooke_flag=Cooke_flag,ERF_flag=ERF_flag,
+            EW_flag=EW_flag,indexMean_Cooke=indexMean_Cooke,
+            indexStd_Cooke=indexStd_Cooke,indexMean_erf=indexMean_erf,
+            indexStd_erf=indexStd_erf,indexMean_EW=indexMean_EW,
+            indexStd_EW=indexStd_EW,output_dir=output_dir,
+            elicitation_name=elicitation_name)
+
         # ------------------------------------------ #
         # --------- Create trend. figures ---------- #
         # ------------------------------------------ #
@@ -2753,9 +2767,14 @@ def run_elicitation(argv):
 
                 slide = prs.slides.add_slide(title_slide_layout)
 
-                figname = (output_dir + "/" + "Barplots_PNGPDF" + "/" +
-                           elicitation_name + "_hist_" +
+                figname = (output_dir + "/" + "Histograms_with_Index_PNGPDF" + "/" +
+                           elicitation_name + "_combined_" +
                            str(j - n_SQ + 1).zfill(2) + ".png")
+
+                figname = (output_dir + "/" + "Histograms_with_Index_PNGPDF" + "/" +
+                           elicitation_name + "_combined_" +
+                           str(j - n_SQ + 1).zfill(2) + ".png")
+
 
                 text_box = TQ_LongQuestion[j - n_SQ]
 
