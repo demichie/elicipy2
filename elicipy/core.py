@@ -742,7 +742,7 @@ def answer_analysis(input_dir, csv_file, n_experts, n_SQ, n_TQ, SQ_array,
         # when Cooke_flag is negative, the weights are read from
         # and external file (weights_file) define in input
 
-        from merge_csv import similar
+        from elicipy.merge_csv import similar
 
         weights = pd.read_csv(weights_file)
         print(weights)
