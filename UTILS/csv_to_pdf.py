@@ -6,6 +6,34 @@ from reportlab.lib.utils import simpleSplit
 from reportlab.lib import utils
 from reportlab.lib.colors import blue, green
 from pdfrw import PdfReader, PdfWriter, PdfDict, PdfName, PdfArray
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import subprocess
+
+
+def find_system_font(font_pattern):
+    result = subprocess.run(["fc-match", "-f", "%{file}", font_pattern],
+                            capture_output=True,
+                            text=True,
+                            check=True)
+
+    font_path = result.stdout.strip()
+
+    if not font_path or not os.path.isfile(font_path):
+        raise FileNotFoundError(f"Font not found: {font_pattern}")
+
+    return font_path
+
+
+REGULAR_FONT = "DejaVuSans"
+BOLD_FONT = "DejaVuSans-Bold"
+
+regular_font_path = find_system_font("DejaVu Sans")
+bold_font_path = find_system_font("DejaVu Sans:style=Bold")
+
+pdfmetrics.registerFont(TTFont(REGULAR_FONT, regular_font_path))
+
+pdfmetrics.registerFont(TTFont(BOLD_FONT, bold_font_path))
 
 
 def parse_csv(file_path):
@@ -21,8 +49,13 @@ def parse_csv(file_path):
                               None)
         image_col = next((col for col in columns if "IMAGE" in col), None)
 
-        if not all([label_col, short_q_col, long_q_cols,
-                    units_col, quest_type_col]):
+        if not all(
+                   [label_col,
+                    short_q_col,
+                    long_q_cols,
+                    units_col,
+                    quest_type_col]
+                    ):
 
             raise ValueError("Missing required columns in the CSV file")
 
@@ -40,8 +73,7 @@ def parse_csv(file_path):
             if not long_q_col:
                 raise ValueError(
                     f"Selected language '{chosen_lang}' not found " +
-                    "in the CSV file"
-                )
+                    "in the CSV file")
         else:
             long_q_col = long_q_cols[0]
 
@@ -93,12 +125,12 @@ def create_pdf(questions, output_pdf):
                 page += 1
 
             current_category = question['quest_type']
-            c.setFont("Helvetica-Bold", 16)
+            c.setFont("DejaVuSans-Bold", 16)
             c.drawCentredString(width / 2, y_position,
                                 current_category.upper())
             y_position -= 35
 
-            c.setFont("Helvetica", 10)
+            c.setFont("DejaVuSans", 10)
             x_start = 100
             labels = ["First Name", "Last Name", "email"]
             rects = []
@@ -150,13 +182,13 @@ def create_pdf(questions, output_pdf):
             page += 1
 
         title = f"{question['label']}. {question['short_q']}"
-        c.setFont("Helvetica-Bold", 12)
+        c.setFont("DejaVuSans-Bold", 12)
         c.drawString(50, y_position, title)
         y_position -= 20
 
-        c.setFont("Helvetica", 10)
+        c.setFont("DejaVuSans", 10)
         lines = simpleSplit(f"{question['long_q']} ({question['units']})",
-                            "Helvetica", 10, width - 100)
+                            "DejaVuSans", 10, width - 100)
         for line in lines:
             c.drawString(70, y_position, line)
             y_position -= 15
@@ -167,7 +199,7 @@ def create_pdf(questions, output_pdf):
             page += 1
 
         y_position -= 25
-        c.setFont("Helvetica", 10)
+        c.setFont("DejaVuSans", 10)
         x_start = 100
         labels = ["5%ile", "50%ile", "95%ile"]
         rects = []

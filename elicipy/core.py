@@ -37,10 +37,12 @@ max_len_plot = 21
 
 # In core.py, add this function near the top
 
-def save_index_results(output_dir, elicitation_name, method_name, tq_labels, mean_vals, std_vals, quantile_vals):
+
+def save_index_results(output_dir, elicitation_name, method_name, tq_labels,
+                       mean_vals, std_vals, quantile_vals):
     """
     Saves the results of the agreement index calculation to a CSV file.
-    
+
     Parameters:
     - output_dir: The directory to save the file in.
     - elicitation_name: The base name for the output file.
@@ -60,14 +62,19 @@ def save_index_results(output_dir, elicitation_name, method_name, tq_labels, mea
         'Index_Q50': quantile_vals[:, 1],
         'Index_Q95': quantile_vals[:, 2]
     }
-    
+
     # Create the DataFrame
     df = pd.DataFrame(data_to_save)
-    
+
     # Construct the filename and save the CSV
-    filename = os.path.join(output_dir, f"{elicitation_name}_index_{method_name}.csv")
+    filename = os.path.join(output_dir,
+                            f"{elicitation_name}_index_{method_name}.csv")
     df.to_csv(filename, index=False)
-    print(f"       Saved agreement index results to {elicitation_name}_index_{method_name}.csv")
+    print(
+        "       Saved agreement index results to "
+        f"{elicitation_name}_index_{method_name}.csv"
+    )
+
 
 def add_date(slide):
 
@@ -942,7 +949,7 @@ def create_samples(group, n_experts, n_SQ, n_TQ, n_pctl, SQ_array, TQ_array,
                    n_sample, W, W_erf, Weqok, W_gt0, Werf_gt0, expin,
                    global_log, global_minVal, global_maxVal, label_indexes,
                    ERF_flag, Cooke_flag, EW_flag, overshoot, globalSum,
-                   normalizeSum):
+                   normalizeSum, intrinsic_full_flag):
 
     verbose = False
 
@@ -969,31 +976,18 @@ def create_samples(group, n_experts, n_SQ, n_TQ, n_pctl, SQ_array, TQ_array,
 
             printProgressBar(j, n_SQ + n_TQ - 1, prefix='      ')
 
-        C_EW = createSamples(
-            DAT,
-            j,
-            Weqok,
-            n_sample,
-            global_log[j],
-            [global_minVal[j], global_maxVal[j]],
-            overshoot,
-            0,
-        )
+        C_EW = createSamples(DAT, j, Weqok, n_sample, global_log[j],
+                             [global_minVal[j], global_maxVal[j]], overshoot,
+                             0, intrinsic_full_flag)
 
         samples_EW[:, j] = C_EW
 
         if Cooke_flag != 0:
 
-            C = createSamples(
-                DAT,
-                j,
-                W[:, 4].flatten(),
-                n_sample,
-                global_log[j],
-                [global_minVal[j], global_maxVal[j]],
-                overshoot,
-                0,
-            )
+            C = createSamples(DAT, j, W[:,
+                                        4].flatten(), n_sample, global_log[j],
+                              [global_minVal[j], global_maxVal[j]], overshoot,
+                              0, intrinsic_full_flag)
 
         else:
 
@@ -1013,6 +1007,7 @@ def create_samples(group, n_experts, n_SQ, n_TQ, n_pctl, SQ_array, TQ_array,
                     [global_minVal[j], global_maxVal[j]],
                     overshoot,
                     ERF_flag,
+                    intrinsic_full_flag
                 )
 
         else:
@@ -1505,7 +1500,6 @@ def run_elicitation(argv):
         if verbose:
             print(i, minval_all[i], maxval_all[i])
 
-
     print("       Saving calculated value ranges to CSV")
 
     question_labels = global_shortQuestion
@@ -1596,24 +1590,36 @@ def run_elicitation(argv):
                 overshoot, cal_power, ERF_flag, Cooke_flag, seed, NS_experts,
                 weights_file)
 
-
             print("       Saving Cooke's method scores to CSV")
-            # Assumiamo che NS_experts (la lista dei nomi degli esperti) sia disponibile
+
             cooke_scores_df = pd.DataFrame({
                 'Expert_ID': range(1, n_experts + 1),
-                'Calibration_Score': W[:, 0], # La prima colonna di W è C[ex]
-                'Information_Score': W[:, 2],  # La terza colonna di W è I_real[ex]
+                'Calibration_Score': W[:, 0],  # La prima colonna di W è C[ex]
+                # La terza colonna di W è I_real[ex]
+                'Information_Score': W[:, 2],
                 'unNormalized weight': W[:, 3],
                 'Normalized weight': W[:, -1]
             })
-            scores_csv_name = output_dir + "/" + elicitation_name + "_cooke_scores.csv"
-            cooke_scores_df.to_csv(scores_csv_name, index=False)
-            print("       Cooke's scores saved to" + elicitation_name + "_cooke_scores.csv")
+            scores_csv_name = (
+                f"{output_dir}/{elicitation_name}"
+                "_cooke_scores.csv"
+            )
 
+            cooke_scores_df.to_csv(scores_csv_name, index=False)
+            print("       Cooke's scores saved to" + elicitation_name +
+                  "_cooke_scores.csv")
 
             # ----------------------------------------- #
             # ------ Create samples and bar plots ----- #
             # ----------------------------------------- #
+
+            try:
+
+                from ElicipyDict import intrinsic_full_flag
+
+            except ImportError:
+
+                intrinsic_full_flag = False
 
             q_Cooke, q_erf, q_EW, samples, samples_erf, samples_EW = \
                 create_samples(group, n_experts, n_SQ, n_TQ, n_pctl, SQ_array,
@@ -1621,7 +1627,7 @@ def run_elicitation(argv):
                                Werf_gt0, expin, global_log, global_minVal,
                                global_maxVal, label_indexes, ERF_flag,
                                abs(Cooke_flag), EW_flag, overshoot, globalSum,
-                               normalizeSum)
+                               normalizeSum, intrinsic_full_flag)
 
             try:
 
@@ -1852,15 +1858,16 @@ def run_elicitation(argv):
 
         indexMean_EW, indexStd_EW, indexQuantiles_EW = calculate_index(
             TQ_array, Weqok, TQ_scale)
-        save_index_results(output_dir, elicitation_name, "EW", TQ_question, 
+        save_index_results(output_dir, elicitation_name, "EW", TQ_question,
                            indexMean_EW, indexStd_EW, indexQuantiles_EW)
 
         if Cooke_flag != 0:
 
             indexMean_Cooke, indexStd_Cooke, indexQuantiles_Cooke = \
                 calculate_index(TQ_array, W_gt0, TQ_scale)
-            save_index_results(output_dir, elicitation_name, "Cooke", TQ_question, 
-                               indexMean_Cooke, indexStd_Cooke, indexQuantiles_Cooke)
+            save_index_results(output_dir, elicitation_name, "Cooke",
+                               TQ_question, indexMean_Cooke, indexStd_Cooke,
+                               indexQuantiles_Cooke)
 
         else:
 
@@ -1872,8 +1879,9 @@ def run_elicitation(argv):
 
             indexMean_erf, indexStd_erf, indexQuantiles_erf = calculate_index(
                 TQ_array, Werf_gt0, TQ_scale)
-            save_index_results(output_dir, elicitation_name, "ERF", TQ_question, 
-                               indexMean_erf, indexStd_erf, indexQuantiles_erf)
+            save_index_results(output_dir, elicitation_name, "ERF",
+                               TQ_question, indexMean_erf, indexStd_erf,
+                               indexQuantiles_erf)
 
         else:
 
@@ -1912,17 +1920,34 @@ def run_elicitation(argv):
                 elicitation_name,
             )
 
-        create_all_hist_figs_with_index(n_SQ=n_SQ,n_TQ=n_TQ,n_sample=n_sample,
-            hist_type=hist_type,samples=samples,samples_erf=samples_erf,
-            samples_EW=samples_EW,colors=["tomato", "purple", "springgreen"],
-            legends=["CM", "ERF", "EW"],TQ_units=TQ_units,global_log=global_log,
-            minval_all=minval_all,maxval_all=maxval_all,
-            global_minVal=global_minVal, global_maxVal=global_maxVal,n_bins=n_bins,
-            label_indexes=label_indexes,Cooke_flag=Cooke_flag,ERF_flag=ERF_flag,
-            EW_flag=EW_flag,indexMean_Cooke=indexMean_Cooke,
-            indexStd_Cooke=indexStd_Cooke,indexMean_erf=indexMean_erf,
-            indexStd_erf=indexStd_erf,indexMean_EW=indexMean_EW,
-            indexStd_EW=indexStd_EW,output_dir=output_dir,
+        create_all_hist_figs_with_index(
+            n_SQ=n_SQ,
+            n_TQ=n_TQ,
+            n_sample=n_sample,
+            hist_type=hist_type,
+            samples=samples,
+            samples_erf=samples_erf,
+            samples_EW=samples_EW,
+            colors=["tomato", "purple", "springgreen"],
+            legends=["CM", "ERF", "EW"],
+            TQ_units=TQ_units,
+            global_log=global_log,
+            minval_all=minval_all,
+            maxval_all=maxval_all,
+            global_minVal=global_minVal,
+            global_maxVal=global_maxVal,
+            n_bins=n_bins,
+            label_indexes=label_indexes,
+            Cooke_flag=Cooke_flag,
+            ERF_flag=ERF_flag,
+            EW_flag=EW_flag,
+            indexMean_Cooke=indexMean_Cooke,
+            indexStd_Cooke=indexStd_Cooke,
+            indexMean_erf=indexMean_erf,
+            indexStd_erf=indexStd_erf,
+            indexMean_EW=indexMean_EW,
+            indexStd_EW=indexStd_EW,
+            output_dir=output_dir,
             elicitation_name=elicitation_name)
 
         # ------------------------------------------ #
@@ -2767,14 +2792,13 @@ def run_elicitation(argv):
 
                 slide = prs.slides.add_slide(title_slide_layout)
 
-                figname = (output_dir + "/" + "Histograms_with_Index_PNGPDF" + "/" +
-                           elicitation_name + "_combined_" +
+                figname = (output_dir + "/" + "Histograms_with_Index_PNGPDF" +
+                           "/" + elicitation_name + "_combined_" +
                            str(j - n_SQ + 1).zfill(2) + ".png")
 
-                figname = (output_dir + "/" + "Histograms_with_Index_PNGPDF" + "/" +
-                           elicitation_name + "_combined_" +
+                figname = (output_dir + "/" + "Histograms_with_Index_PNGPDF" +
+                           "/" + elicitation_name + "_combined_" +
                            str(j - n_SQ + 1).zfill(2) + ".png")
-
 
                 text_box = TQ_LongQuestion[j - n_SQ]
 

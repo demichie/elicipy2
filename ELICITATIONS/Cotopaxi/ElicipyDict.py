@@ -75,6 +75,9 @@ ERF_flag = 0
 # 3 - Cooke continuous
 Cooke_flag = 1
 
+# flag for calculating intrinsic range for all experts (default is False)
+intrinsic_full_flag = False
+
 # remove comment to read from file (only when Cooke_flag<0)
 # weights_file = "weights.csv"
 

@@ -1,5 +1,5 @@
-def createSamples(DAT, j, W, N, logSCALE, domain, overshoot, ERF_flag):
-
+def createSamples(DAT, j, W, N, logSCALE, domain, overshoot, ERF_flag,
+                  intrinsic_full_flag):
     """Compute the quantiles and samples for question j from weights
     and answers
 
@@ -19,6 +19,8 @@ def createSamples(DAT, j, W, N, logSCALE, domain, overshoot, ERF_flag):
         domain for asnwer (domain[0] = minVal; domain[1] = maxVal)
     ERF_flag : int
         integer for method (1 for ERF; 2 for ERF mod; 0 for Cooke)
+    intrinsic_full_flag : boolean
+        true or false
 
     Returns
     -------
@@ -48,27 +50,21 @@ def createSamples(DAT, j, W, N, logSCALE, domain, overshoot, ERF_flag):
 
     if ERF_flag == 1:
 
-        C = createSamplesERF_original(
-            incm, mid, incM, W, N, logSCALE, domain
-        )
+        C = createSamplesERF_original(incm, mid, incM, W, N, logSCALE, domain)
 
     elif ERF_flag == 2:
 
-        C = createSamplesERF(
-            incm, mid, incM, W, N, logSCALE, domain
-        )
+        C = createSamplesERF(incm, mid, incM, W, N, logSCALE, domain)
 
     else:
 
-        C = createSamplesUCA2(
-            incm, mid, incM, W, N, logSCALE, domain, overshoot
-        )
+        C = createSamplesUCA2(incm, mid, incM, W, N, logSCALE, domain,
+                              overshoot, intrinsic_full_flag)
 
     return C
 
 
 def max_entropy(incm, mid, incM, rA, rB):
-
     """Produces a random sample from a maximum entropy distribution
 
     Parameters
@@ -115,7 +111,6 @@ def max_entropy(incm, mid, incM, rA, rB):
 
 
 def sampleDISCR(P, N):
-
     """Produces an array of random samples from a discrete distribution
 
     Parameters
@@ -161,8 +156,8 @@ def sampleDISCR(P, N):
     return a
 
 
-def createSamplesUCA2(incm, mid, incM, W, N, logSCALE, domain, overshoot):
-
+def createSamplesUCA2(incm, mid, incM, W, N, logSCALE, domain, overshoot,
+                      intrinsic_full_flag):
     """Produces an array of random samples from weights and answers by using
     max. entropy distributions and linear pooling
 
@@ -182,6 +177,8 @@ def createSamplesUCA2(incm, mid, incM, W, N, logSCALE, domain, overshoot):
         scale of question (0 for uni; 1 for log)
     domain : int list [ 2 ]
         domain for asnwer (domain[0] = minVal; domain[1] = maxVal)
+    intrinsic_full_flag : boolean
+        true or false
 
     Returns
     -------
@@ -225,8 +222,16 @@ def createSamplesUCA2(incm, mid, incM, W, N, logSCALE, domain, overshoot):
 
     C = np.zeros(N)
 
-    rA = np.amin(incm[W > 0])
-    rB = np.amax(incM[W > 0])
+    if intrinsic_full_flag:
+
+        rA = np.amin(incm)
+        rB = np.amax(incM)
+
+    else:
+
+        rA = np.amin(incm[W > 0])
+        rB = np.amax(incM[W > 0])
+
     R = rB - rA
     rA = rA - overshoot * R
     rB = rB + overshoot * R
@@ -255,7 +260,6 @@ def createSamplesUCA2(incm, mid, incM, W, N, logSCALE, domain, overshoot):
 
 
 def createSamplesERF_original(incm, mid, incM, W, N, logSCALE, domain):
-
     """Produces an array of random samples from weights and answers by using
     triangular distributions and quantile pooling
 
@@ -348,8 +352,8 @@ def createSamplesERF_original(incm, mid, incM, W, N, logSCALE, domain):
 
             else:
 
-                P[i] = c[i] - np.sqrt((1.0 - u[j]) * (c[i] - a[i]) *
-                                      (c[i] - b[i]))
+                P[i] = c[i] - np.sqrt(
+                    (1.0 - u[j]) * (c[i] - a[i]) * (c[i] - b[i]))
 
         C[j] = np.dot(P, W)
 
@@ -365,7 +369,6 @@ def createSamplesERF_original(incm, mid, incM, W, N, logSCALE, domain):
 
 
 def createSamplesERF(incm, mid, incM, W, N, logSCALE, domain):
-
     """Produces an array of random samples from weights and answers by using
     triangular distributions and linear pooling
 
