@@ -1,0 +1,8 @@
+url_path,views_total,views_unique
+/demichie/elicipy2,10,2
+/demichie/elicipy2/tree/main,5,1
+/demichie/elicipy2/blob/main/requirements.txt,3,1
+/demichie/elicipy2/tree/main/ELICITATIONS,3,1
+/demichie/elicipy2/tree/main/elicipy,3,1
+/demichie/elicipy2/blob/main/ELICITATIONS/ElicitationCase.py,1,1
+/demichie/elicipy2/blob/main/elicipy/streamlit_app.py,1,1
