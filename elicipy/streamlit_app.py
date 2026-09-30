@@ -4,7 +4,7 @@ import os.path
 import sys
 
 import bcrypt
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
 from github import Github
 from github import Auth
@@ -377,23 +377,8 @@ def build_output_dataframe(qst, ans, additional_qst, additional_ans):
 
 
 # Load environment variables from .env file
-#dotenv_path = find_dotenv(usecwd=True)
-#load_dotenv(dotenv_path)
-#PASSWORD_HASH = os.getenv("PASSWORD_HASH")
-
-from pathlib import Path
-
-dotenv_path = Path.cwd() / ".env"
-load_dotenv(dotenv_path)
-
+load_dotenv()
 PASSWORD_HASH = os.getenv("PASSWORD_HASH")
-
-print(
-    f"Working directory: {Path.cwd()}, "
-    f".env: {dotenv_path}, "
-    f"exists: {dotenv_path.is_file()}, "
-    f"PASSWORD_HASH loaded: {bool(PASSWORD_HASH)}"
-)
 
 
 def check_password():
@@ -417,43 +402,16 @@ def main():
 
     st.set_page_config(page_title="Elicipy", page_icon="logo.png")
 
-    current_path = os.getcwd()
+    try:
+        from createWebformDict import password_protected
+    except ImportError:
+        password_protected = False
 
-    path = current_path + '/ELICITATIONS'
-    os.chdir(path)
-    print('Path: ', path)
-    sys.path.append(path)
-
-    elicitation_list = next(os.walk(path))
-
-    if len(elicitation_list[1]) == 1:
-        wrk_dir = elicitation_list[1][0]
-    else:
-        try:
-            from ElicitationCase import wrk_dir
-        except ImportError:
-            filename = path + '/ElicitationCase.py'
-            isExist = os.path.exists(filename)
-
-            if isExist:
-                print('Please add wrk_dir to ElicitationCase.py')
-            else:
-                print('Please create file ElicitationCase.py with wrk_dir')
-
-    path = current_path + '/ELICITATIONS/' + wrk_dir
-    print('Path: ', path)
-    sys.path.append(path)
-
-    os.chdir(current_path)
-    from createWebformDict import password_protected
-
-
-    if password_protected==True:
+    if password_protected:
         if check_password():
             show_form()
     else:
         show_form()
-
 
 
 def show_form():
@@ -845,8 +803,8 @@ def show_form():
                  + 'to those of the target questions, and to communicate ' \
                  + 'with the participant only for matters related to the ' \
                  + 'expert elicitation. In accordance with the EU GDPR, ' \
-                 + 'your personal data will be stored on our ' \
-                 + 'repository (INGV, Sezione di Pisa) for as long ' \
+                 + 'your personal data will be stored on a privite Github ' \
+                 + 'repository (https://github.com/security) for as long ' \
                  + 'as is necessary for the purposes for which the personal ' \
                  + 'data are processed.'
 

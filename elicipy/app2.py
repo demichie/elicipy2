@@ -1,11 +1,17 @@
 import subprocess
-import pkg_resources
+import sys
+from importlib.resources import as_file, files
 
 
 def run_streamlit():
-    """Launch the Streamlit app from the installed package."""
-    app_path = pkg_resources.resource_filename("elicipy", "dashboard_app.py")
-    subprocess.run(["streamlit", "run", app_path], check=True)
+    """Launch the Streamlit dashboard from the installed package."""
+    app_resource = files("elicipy").joinpath("dashboard_app.py")
+
+    with as_file(app_resource) as app_path:
+        subprocess.run(
+            [sys.executable, "-m", "streamlit", "run", str(app_path)],
+            check=True,
+        )
 
 
 if __name__ == "__main__":
