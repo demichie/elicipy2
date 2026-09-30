@@ -403,6 +403,16 @@ def read_questionnaire(input_dir, csv_file, seed, target):
         label_flag = False
 
     df_read = pd.read_csv(input_dir + "/" + csv_file, header=0)
+
+    # UNITS is optional for dimensionless quantities. Pandas reads empty CSV
+    # cells as NaN by default; normalize the whole column here so that all
+    # downstream code (plots, tables, labels, etc.) always receives strings.
+    if "UNITS" in df_read.columns:
+        df_read["UNITS"] = (df_read["UNITS"]
+                            .fillna("")
+                            .astype(str)
+                            .str.strip())
+
     # print(df_read)
 
     quest_type = df_read["QUEST_TYPE"].to_list()
@@ -1203,13 +1213,17 @@ def run_elicitation(argv):
     from ElicipyDict import hist_type
     from ElicipyDict import n_bins
 
-    if (Cooke_flag > 0 or ERF_flag > 0):
+    # Read the seed flag explicitly when provided. This makes seed and target
+    # independent switches (e.g. seed=True, target=False). For backward
+    # compatibility with older ElicipyDict.py files, retain the historical
+    # inference from Cooke/ERF flags when seed is not defined.
+    try:
 
-        seed = True
+        from ElicipyDict import seed
 
-    else:
+    except ImportError:
 
-        seed = False
+        seed = (Cooke_flag > 0 or ERF_flag > 0)
 
     try:
 
@@ -1291,105 +1305,135 @@ def run_elicitation(argv):
      global_idxMax, global_sum50,
      df_quest) = read_questionnaire(input_dir, csv_file, seed, target)
 
-    # Read an renumber index_groups
-    try:
+    # Target-only plotting groups. When target=False, df_quest contains only
+    # seed questions, so trying to renumber target IDs would produce an empty
+    # match and an IndexError. Disable these groups in seed-only runs.
+    if target:
 
-        from ElicipyDict import index_groups
+        # Read and renumber index_groups
+        try:
 
-    except ImportError:
+            from ElicipyDict import index_groups
+
+        except ImportError:
+
+            index_groups = []
+
+        df_quest.reset_index(inplace=True, drop=True)
+
+        for count, group in enumerate(index_groups):
+
+            new_indexes_group = []
+
+            for idx in group:
+
+                indices = df_quest.index[
+                    (df_quest["IDX"] == idx)
+                    & (df_quest.QUEST_TYPE.str.contains("target"))]
+
+                if len(indices) == 0:
+                    raise ValueError(
+                        f"Target index {idx} from index_groups was not found "
+                        "in the selected target questions."
+                    )
+
+                new_indexes_group.append(int(indices[0]))
+
+            index_groups[count] = new_indexes_group
+
+        # Read and renumber trend_groups
+        try:
+
+            from ElicipyDict import trend_groups
+
+        except ImportError:
+
+            trend_groups = []
+
+        for count, group in enumerate(trend_groups):
+
+            new_trend_group = []
+
+            for idx in group:
+
+                indices = df_quest.index[
+                    (df_quest["IDX"] == idx)
+                    & (df_quest.QUEST_TYPE.str.contains("target"))]
+
+                if len(indices) == 0:
+                    raise ValueError(
+                        f"Target index {idx} from trend_groups was not found "
+                        "in the selected target questions."
+                    )
+
+                new_trend_group.append(int(indices[0]))
+
+            trend_groups[count] = new_trend_group
+
+        # Read and renumber violin_groups
+        try:
+
+            from ElicipyDict import violin_groups
+
+        except ImportError:
+
+            violin_groups = []
+
+        for count, group in enumerate(violin_groups):
+
+            new_violin_group = []
+
+            for idx in group:
+
+                indices = df_quest.index[
+                    (df_quest["IDX"] == idx)
+                    & (df_quest.QUEST_TYPE.str.contains("target"))]
+
+                if len(indices) == 0:
+                    raise ValueError(
+                        f"Target index {idx} from violin_groups was not found "
+                        "in the selected target questions."
+                    )
+
+                new_violin_group.append(int(indices[0]))
+
+            violin_groups[count] = new_violin_group
+
+        # Read and renumber pie_groups
+        try:
+
+            from ElicipyDict import pie_groups
+
+        except ImportError:
+
+            pie_groups = []
+
+        for count, group in enumerate(pie_groups):
+
+            new_pie_group = []
+
+            for idx in group:
+
+                indices = df_quest.index[
+                    (df_quest["IDX"] == idx)
+                    & (df_quest.QUEST_TYPE.str.contains("target"))]
+
+                if len(indices) == 0:
+                    raise ValueError(
+                        f"Target index {idx} from pie_groups was not found "
+                        "in the selected target questions."
+                    )
+
+                new_pie_group.append(int(indices[0]))
+
+            pie_groups[count] = new_pie_group
+
+    else:
 
         index_groups = []
-
-    df_quest.reset_index(inplace=True, drop=True)
-
-    for count, group in enumerate(index_groups):
-
-        new_indexes_group = []
-
-        for idx in group:
-
-            indices = df_quest.index[
-                (df_quest["IDX"] == idx)
-                & (df_quest.QUEST_TYPE.str.contains("target"))]
-
-            new_indexes_group.append(int(indices[0]))
-
-        index_groups[count] = new_indexes_group
-
-    # Read an renumber trend_groups
-    try:
-
-        from ElicipyDict import trend_groups
-
-    except ImportError:
-
         trend_groups = []
-
-    df_quest.reset_index(inplace=True, drop=True)
-
-    for count, group in enumerate(trend_groups):
-
-        new_trend_group = []
-
-        for idx in group:
-
-            indices = df_quest.index[
-                (df_quest["IDX"] == idx)
-                & (df_quest.QUEST_TYPE.str.contains("target"))]
-
-            new_trend_group.append(int(indices[0]))
-
-        trend_groups[count] = new_trend_group
-
-    # Read an renumber violin_groups
-    try:
-
-        from ElicipyDict import violin_groups
-
-    except ImportError:
-
         violin_groups = []
-
-    df_quest.reset_index(inplace=True, drop=True)
-
-    for count, group in enumerate(violin_groups):
-
-        new_violin_group = []
-
-        for idx in group:
-
-            indices = df_quest.index[
-                (df_quest["IDX"] == idx)
-                & (df_quest.QUEST_TYPE.str.contains("target"))]
-
-            new_violin_group.append(int(indices[0]))
-
-        violin_groups[count] = new_violin_group
-
-    # Read an renumber pie_groups
-    try:
-
-        from ElicipyDict import pie_groups
-
-    except ImportError:
-
         pie_groups = []
-
-    df_quest.reset_index(inplace=True, drop=True)
-
-    for count, group in enumerate(pie_groups):
-
-        new_pie_group = []
-
-        for idx in group:
-
-            indices = df_quest.index[
-                (df_quest["IDX"] == idx)
-                & (df_quest.QUEST_TYPE.str.contains("target"))]
-
-            new_pie_group.append(int(indices[0]))
-
-        pie_groups[count] = new_pie_group
 
     try:
 
@@ -1399,28 +1443,30 @@ def run_elicitation(argv):
 
         normalizeSum = False
 
-    globalSum_temp = zip(global_idxMin, global_idxMax, global_sum50)
-
-    globalSum_temp = list(set(globalSum_temp))
-
+    # SUM50 normalization is defined for target-question groups. In a
+    # seed-only run idx_list is empty, so no target normalization is needed.
     globalSum = []
-    for triplet in globalSum_temp:
+    if target:
 
-        try:
+        globalSum_temp = zip(global_idxMin, global_idxMax, global_sum50)
+        globalSum_temp = list(set(globalSum_temp))
 
-            int(triplet[0])
-            flag = True
+        for triplet in globalSum_temp:
 
-        except ValueError:
+            try:
 
-            flag = False
+                int(triplet[0])
+                flag = True
 
-        # print(flag)
-        if flag:
+            except (ValueError, TypeError):
 
-            index_first = idx_list.index(int(triplet[0]))
-            index_last = idx_list.index(int(triplet[1]))
-            globalSum.append([index_first, index_last, triplet[2]])
+                flag = False
+
+            if flag:
+
+                index_first = idx_list.index(int(triplet[0]))
+                index_last = idx_list.index(int(triplet[1]))
+                globalSum.append([index_first, index_last, triplet[2]])
 
     # Read the asnwers of all the experts
     group = 0
@@ -1436,18 +1482,6 @@ def run_elicitation(argv):
 
     # alpha_nominal, alpha_interval = /
     # calculate_alpha(TQ_array, overshoot,TQ_scale)
-
-    weight = np.ones(n_experts)
-    indexMean, indexStd, indexQuantiles = calculate_index(
-        TQ_array, weight, TQ_scale)
-
-    # for i in range(n_TQ):
-
-    # print("TQ " + label_indexes[i+n_SQ],indexMean[i],indexStd[i], /
-    # indexQuantiles[i,:])
-    # string = "%.2E, " % indexMean[i] + "%.2E, " % indexStd[i] + "Target"
-    # print(string)
-    # print(ciao)
 
     minval_all = np.zeros(n_SQ + n_TQ)
     minval_all[0:n_SQ] = np.amin(SQ_array[:, 0, :], axis=0)
@@ -1850,7 +1884,10 @@ def run_elicitation(argv):
 
     counter_plot = 0
 
-    if analysis:
+    # Index/trend/violin/pie post-processing is defined for target questions.
+    # Seed-only runs continue below with seed answer plots and the
+    # presentation.
+    if analysis and target:
 
         # ------------------------------------------ #
         # ---------- Create index figures ---------- #
