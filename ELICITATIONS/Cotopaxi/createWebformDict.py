@@ -29,6 +29,8 @@ pctls = [5, 50, 95]
 # companion_document = ""
 # supplementary_documents = [""]
 
+answers_location = 'on a private Github repository (https://github.com/security)' # location of the answers as it will appear on the online form
+
 confirmation_email = False
 
 # if confirmation email is True and datarepo is 'local' or 'local_github'
