@@ -794,18 +794,19 @@ def show_form():
                     additional_ans.append('')
 
     form2.markdown("""___""")
-
+    
+    from createWebformDict import answers_location
+    
     agree_text = 'By sending this form and clicking the option “I AGREE”, ' \
                  + 'you hereby consent to the processing of your given ' \
                  + 'personal data (first name, last name and email address) ' \
                  + 'voluntarily provided. These data are used for the only ' \
-                 + 'purpose of associating the asnwers of the seed question ' \
+                 + 'purpose of associating the answers of the seed question ' \
                  + 'to those of the target questions, and to communicate ' \
                  + 'with the participant only for matters related to the ' \
                  + 'expert elicitation. In accordance with the EU GDPR, ' \
-                 + 'your personal data will be stored on a privite Github ' \
-                 + 'repository (https://github.com/security) for as long ' \
-                 + 'as is necessary for the purposes for which the personal ' \
+                 + f'your personal data will be stored {answers_location} for as long' \
+                 + ' as is necessary for the purposes for which the personal ' \
                  + 'data are processed.'
 
     agree = form2.checkbox('I AGREE')
