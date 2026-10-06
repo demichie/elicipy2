@@ -30,6 +30,32 @@ def similar(a, b):
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 
+def remove_additional_info_columns(df):
+    """Remove optional free-form answers from merged analysis data.
+
+    Individual response CSV files may contain one optional column per
+    question whose name ends with ``Additional information``.  These columns
+    are useful for preserving the expert's free-form input, but they must not
+    enter the numerical seed/target analysis, which expects exactly three
+    percentile columns per question.
+
+    Old response files do not contain these columns.  In that case this
+    function returns the dataframe unchanged.  This also makes merging a mix
+    of old and new response files safe: pandas first creates the union of the
+    columns, then all additional-information columns are removed here.
+    """
+
+    additional_info_columns = [
+        col for col in df.columns
+        if str(col).strip().endswith('Additional information')
+    ]
+
+    if additional_info_columns:
+        df = df.drop(columns=additional_info_columns)
+
+    return df
+
+
 def merge_csv(input_dir, seed, target, group, csv_file, label_flag,
               write_flag):
 
@@ -171,6 +197,10 @@ def merge_csv(input_dir, seed, target, group, csv_file, label_flag,
         combined_seed_csv = pd.concat([pd.read_csv(f) for f in all_filenames],
                                       ignore_index=True,
                                       axis=0)
+
+        # Remove optional free-form fields before any downstream processing.
+        # If the columns are not present (old response files), this is a no-op.
+        combined_seed_csv = remove_additional_info_columns(combined_seed_csv)
 
         combined_seed_csv.insert(loc=0, column="timestamp", value=timestamp)
 
@@ -440,6 +470,11 @@ def merge_csv(input_dir, seed, target, group, csv_file, label_flag,
         # combine all files in the list
         combined_target_csv = pd.concat(
             [pd.read_csv(f) for f in target_filenames])
+
+        # Remove optional free-form fields before any downstream processing.
+        # If the columns are not present (old response files), this is a no-op.
+        combined_target_csv = remove_additional_info_columns(
+            combined_target_csv)
 
         timestamp_series = pd.Series(timestamp, name='timestamp')
 
