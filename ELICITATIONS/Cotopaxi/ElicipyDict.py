@@ -80,8 +80,8 @@ Cooke_flag = 1
 
 # parameters for Cooke
 
-# flag for calculating intrinsic range only for experts with weight > alpha (default is False)
-intrinsic_full_flag = False
+# flag for calculating intrinsic range only for all experts (True) or only for experts with weight > alpha (False)
+intrinsic_full_flag = True
 
 # significance level (this value cannot be higher than the
 # highest calibration score of the pool of experts)
