@@ -92,20 +92,20 @@ def max_entropy(incm, mid, incM, rA, rB):
     import numpy as np
 
     rng = np.random.default_rng()
-    x = rng.random(1)
-    y = mid + (incM - mid) * rng.random(1)
+    x = rng.random()
+    y = mid + (incM - mid) * rng.random()
 
     if x > 0.95:
 
-        y = incM + (rB - incM) * rng.random(1)
+        y = incM + (rB - incM) * rng.random()
 
     if x < 0.5:
 
-        y = incm + (mid - incm) * rng.random(1)
+        y = incm + (mid - incm) * rng.random()
 
     if x < 0.05:
 
-        y = rA + (incm - rA) * rng.random(1)
+        y = rA + (incm - rA) * rng.random()
 
     return y
 
