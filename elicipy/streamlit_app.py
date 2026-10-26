@@ -502,7 +502,7 @@ def show_form():
         st.download_button(label="Download PDF Questionnaire",
                            data=PDFbyte,
                            file_name=companion_document,
-                           mime='application/octet-stream')
+                           mime='application/pdf')
 
     # Check supplementary documents.
     try:
@@ -523,7 +523,7 @@ def show_form():
                 st.download_button(label="Download " + doc,
                                    data=PDFbyte,
                                    file_name=doc,
-                                   mime='application/octet-stream')
+                                   mime='application/pdf')
 
     # Read the questionnaire to a pandas dataframe.
     df = pd.read_csv(input_dir + '/' + csv_file,
